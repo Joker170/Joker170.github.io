@@ -73,23 +73,23 @@
 
 
 
-<meta name="description" content="Redis环境配置记录 本文记录在centos上安装redis的过程，以及遇到的一些问题和解决方案   下载Redis软件包wget http://download.redis.io/releases/redis-6.0.0.tar.gz选择最新版redis压缩包进行下载  解压并安装tar xvf redis-6.0.0.tar.gzcd redis-6.0.0makesudo make ins">
+<meta name="description" content="Redis环境配置记录 记录在centos上安装redis的过程   下载Redis软件包wget http://download.redis.io/releases/redis-6.0.0.tar.gz选择最新版redis压缩包进行下载  解压并安装tar xvf redis-6.0.0.tar.gzcd redis-6.0.0makesudo make install PREFIX=/usr/">
 <meta name="keywords" content="Redis, centos">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Redis环境配置">
 <meta property="og:url" content="linqy71.github.io/2020/10/04/Redis环境配置/index.html">
 <meta property="og:site_name" content="曲率飞行">
-<meta property="og:description" content="Redis环境配置记录 本文记录在centos上安装redis的过程，以及遇到的一些问题和解决方案   下载Redis软件包wget http://download.redis.io/releases/redis-6.0.0.tar.gz选择最新版redis压缩包进行下载  解压并安装tar xvf redis-6.0.0.tar.gzcd redis-6.0.0makesudo make ins">
+<meta property="og:description" content="Redis环境配置记录 记录在centos上安装redis的过程   下载Redis软件包wget http://download.redis.io/releases/redis-6.0.0.tar.gz选择最新版redis压缩包进行下载  解压并安装tar xvf redis-6.0.0.tar.gzcd redis-6.0.0makesudo make install PREFIX=/usr/">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="/04/Redis环境配置/ps-result.png">
 <meta property="og:image" content="/04/Redis环境配置/cluster-nodes.png">
 <meta property="og:image" content="/04/Redis环境配置/test-set.jpg">
 <meta property="og:image" content="/04/Redis环境配置/test-benchmark.png">
 <meta property="og:image" content="/04/Redis环境配置/gem-redisstat-error.png">
-<meta property="og:updated_time" content="2020-10-15T03:34:55.918Z">
+<meta property="og:updated_time" content="2020-10-15T03:41:07.551Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Redis环境配置">
-<meta name="twitter:description" content="Redis环境配置记录 本文记录在centos上安装redis的过程，以及遇到的一些问题和解决方案   下载Redis软件包wget http://download.redis.io/releases/redis-6.0.0.tar.gz选择最新版redis压缩包进行下载  解压并安装tar xvf redis-6.0.0.tar.gzcd redis-6.0.0makesudo make ins">
+<meta name="twitter:description" content="Redis环境配置记录 记录在centos上安装redis的过程   下载Redis软件包wget http://download.redis.io/releases/redis-6.0.0.tar.gz选择最新版redis压缩包进行下载  解压并安装tar xvf redis-6.0.0.tar.gzcd redis-6.0.0makesudo make install PREFIX=/usr/">
 <meta name="twitter:image" content="/04/Redis环境配置/ps-result.png">
 
 
@@ -348,7 +348,7 @@
                   <span class="post-meta-item-text">字数统计&#58;</span>
                 
                 <span title="字数统计">
-                  629
+                  621
                 </span>
               
 
@@ -386,7 +386,7 @@
 
       
         <h2 id="Redis环境配置记录"><a href="#Redis环境配置记录" class="headerlink" title="Redis环境配置记录"></a>Redis环境配置记录</h2><blockquote>
-<p>本文记录在centos上安装redis的过程，以及遇到的一些问题和解决方案</p>
+<p>记录在centos上安装redis的过程</p>
 </blockquote>
 <ol>
 <li><p>下载Redis软件包<br><code>wget http://download.redis.io/releases/redis-6.0.0.tar.gz</code><br>选择最新版redis压缩包进行下载</p>
@@ -429,7 +429,10 @@
 </li>
 </ul>
 <hr>
-<h2 id="集群启动"><a href="#集群启动" class="headerlink" title="集群启动"></a>集群启动</h2><ol>
+<h2 id="集群启动"><a href="#集群启动" class="headerlink" title="集群启动"></a>集群启动</h2><blockquote>
+<p>记录集群启动过程</p>
+</blockquote>
+<ol>
 <li>在主机1上启动6个server节点</li>
 <li>在主机2上连接其中一个节点并进行节点握手：<br><code>redis-cli -c -h xxxx(host ip) -p 6379</code><br><code>6379&gt; cluster meet xxxx 6380/6381/6382/6383/6384</code><br><code>6379&gt; quit</code></li>
 <li>在主机2上为6个server分配16384个slots：<br><code>&gt; redis-cli -h xxxx -p 6379 cluster addslots {0..2729}</code><br>其余5个server节点类似。</li>
