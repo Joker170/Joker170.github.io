@@ -86,7 +86,7 @@
 <meta property="og:image" content="/04/Redis环境配置/test-set.jpg">
 <meta property="og:image" content="/04/Redis环境配置/test-benchmark.png">
 <meta property="og:image" content="/04/Redis环境配置/gem-redisstat-error.png">
-<meta property="og:updated_time" content="2020-10-15T03:41:07.551Z">
+<meta property="og:updated_time" content="2020-10-28T02:09:59.692Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Redis环境配置">
 <meta name="twitter:description" content="Redis环境配置记录 记录在centos上安装redis的过程   下载Redis软件包wget http://download.redis.io/releases/redis-6.0.0.tar.gz选择最新版redis压缩包进行下载  解压并安装tar xvf redis-6.0.0.tar.gzcd redis-6.0.0makesudo make install PREFIX=/usr/">
@@ -348,7 +348,7 @@
                   <span class="post-meta-item-text">字数统计&#58;</span>
                 
                 <span title="字数统计">
-                  621
+                  636
                 </span>
               
 
@@ -440,6 +440,8 @@
 <li>测试集群：<br><code>6379&gt; set university &quot;SYSU&quot;</code><br><img src="/04/Redis环境配置/test-set.jpg" alt=""></li>
 <li>使用benchmark测试集群：<br><img src="/04/Redis环境配置/test-benchmark.png" alt=""></li>
 </ol>
+<p><strong>集群启动方法二：</strong></p>
+<p><code>redis-cli --cluster create host1:port1 host2:port2 ...</code></p>
 <h2 id="监控集群"><a href="#监控集群" class="headerlink" title="监控集群"></a>监控集群</h2><ol>
 <li>安装redis-stat<br>采用 <code>gem install redis-stat</code> 报错：<br><img src="/04/Redis环境配置/gem-redisstat-error.png" alt=""><br>于是下载<a href="https://github.com/junegunn/redis-stat/releases" target="_blank" rel="noopener">github</a>上的jar包后，<br>通过<code>java -jar redis-stat-0.4.14.jar --server</code>直接启动redis-stat</li>
 </ol>
