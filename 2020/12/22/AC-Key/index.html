@@ -76,7 +76,7 @@
 <meta name="description" content="AC-Key: Adaptive Caching for LSM-based Key-Value Stores USENIX ATC’20Fenggang Wu, Ming-Hong Yang, Baoquan Zhang, and David H.C. Du, University of Minnesotahttps://www.usenix.org/conference/atc20/prese">
 <meta name="keywords" content="cache, LSM-Tree">
 <meta property="og:type" content="article">
-<meta property="og:title" content="AC-Key">
+<meta property="og:title" content="AC-Key阅读笔记">
 <meta property="og:url" content="linqy71.github.io/2020/12/22/AC-Key/index.html">
 <meta property="og:site_name" content="曲率飞行">
 <meta property="og:description" content="AC-Key: Adaptive Caching for LSM-based Key-Value Stores USENIX ATC’20Fenggang Wu, Ming-Hong Yang, Baoquan Zhang, and David H.C. Du, University of Minnesotahttps://www.usenix.org/conference/atc20/prese">
@@ -95,9 +95,9 @@
 <meta property="og:image" content="/2020/12/22/AC-Key/cache_size.png">
 <meta property="og:image" content="/2020/12/22/AC-Key/value_size.png">
 <meta property="og:image" content="/2020/12/22/AC-Key/hot_ratio.png">
-<meta property="og:updated_time" content="2020-12-23T10:07:20.682Z">
+<meta property="og:updated_time" content="2020-12-23T10:14:44.876Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="AC-Key">
+<meta name="twitter:title" content="AC-Key阅读笔记">
 <meta name="twitter:description" content="AC-Key: Adaptive Caching for LSM-based Key-Value Stores USENIX ATC’20Fenggang Wu, Ming-Hong Yang, Baoquan Zhang, and David H.C. Du, University of Minnesotahttps://www.usenix.org/conference/atc20/prese">
 <meta name="twitter:image" content="/2020/12/22/AC-Key/lsm.png">
 
@@ -135,7 +135,7 @@
 
 
 
-  <title>AC-Key | 曲率飞行</title>
+  <title>AC-Key阅读笔记 | 曲率飞行</title>
   
 
 
@@ -291,7 +291,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">AC-Key</h1>
+          <h1 class="post-title" itemprop="name headline">AC-Key阅读笔记</h1>
         
 
         <div class="post-meta">
@@ -357,7 +357,7 @@
                   <span class="post-meta-item-text">字数统计&#58;</span>
                 
                 <span title="字数统计">
-                  2,043
+                  2,044
                 </span>
               
 
@@ -429,7 +429,8 @@
 <ul>
 <li>block能存放多个有序的KV对，非常适合范围查找。</li>
 <li>KV cache存放了一个一个的KV对，不需要额外的I/O即可读出数据，适合点查找，但当Value的size较大时空间利用率较低，因此适用于value size较小的情况。</li>
-<li>KP cache将Value转变为指针，尽管需要一次I/O，但cache的空间利用率大，适用于点查找中value size较大的情况。<br>同时，相比KP cache来说，KV cache应对热点问题更加有效。</li>
+<li>KP cache将Value转变为指针，尽管需要一次I/O，但cache的空间利用率大，适用于点查找中value size较大的情况。</li>
+<li>同时，相比KP cache来说，KV cache应对热点问题更加有效。</li>
 </ul>
 <ol start="3">
 <li>目前存在的问题：<br><img src="/2020/12/22/AC-Key/challenge.png" alt=""></li>
@@ -443,9 +444,7 @@
 <ul>
 <li><strong>adjust the size of different types of caches according to dynamic workloads</strong></li>
 </ul>
-<ol start="5">
-<li>另外，基于LSM Tree的特点，使用cache来提高读性能还需要考虑<strong>cache benefit与cache cost之间的平衡</strong>：</li>
-</ol>
+<h3 id="cache-efficiency"><a href="#cache-efficiency" class="headerlink" title="cache efficiency"></a>cache efficiency</h3><p>另外，基于LSM Tree的特点，使用cache来提高读性能还需要考虑<strong>cache benefit与cache cost之间的平衡</strong>：</p>
 <ul>
 <li>cache benefit：一次cache hit所能节省的storage I/O<ul>
 <li>Key存在的level越深，能够节省的storage I/O越多</li>
@@ -474,10 +473,12 @@
 <li>m的计算方式：</li>
 </ol>
 <p><img src="/2020/12/22/AC-Key/m.png" alt=""></p>
-<p>假设Storage中$L_0$的的SSTable数量为$n_0$，则：</p>
 <ul>
+<li>假设Storage中$L_0$的的SSTable数量为$n_0$，则：<ul>
 <li>当要查找的key存在于$L_0$时，需要一个一个遍历$L_0$中的SSTable直到找到key，因此平均下来$m=n_0/2$</li>
 <li>当要查找的key存在于其它level时，需要首先遍历$L_0$中的所有SSTable，即$n_0$次I/O，再往下查找每个level中存放有key范围的特殊文件，因此是$l$次I/O，所以$m=l+n_0$</li>
+</ul>
+</li>
 </ul>
 <ol start="3">
 <li><p>$f(m)$<br> $f(m)$取决于KV store的实现，不过在通常情况下：</p>
@@ -765,7 +766,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#AC-Key-Adaptive-Caching-for-LSM-based-Key-Value-Stores"><span class="nav-number">1.</span> <span class="nav-text">AC-Key: Adaptive Caching for LSM-based Key-Value Stores</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#key-word"><span class="nav-number">1.1.</span> <span class="nav-text">key word</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#background"><span class="nav-number">1.2.</span> <span class="nav-text">background</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#LSM-Tree"><span class="nav-number">1.2.1.</span> <span class="nav-text">LSM Tree</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ARC"><span class="nav-number">1.2.2.</span> <span class="nav-text">ARC</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LSM-–-read"><span class="nav-number">1.2.3.</span> <span class="nav-text">LSM – read</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Challenge"><span class="nav-number">1.3.</span> <span class="nav-text">Challenge</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Cache-item-type"><span class="nav-number">1.3.1.</span> <span class="nav-text">Cache item type</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Design"><span class="nav-number">1.4.</span> <span class="nav-text">Design</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#caching-efficiency-factor"><span class="nav-number">1.4.1.</span> <span class="nav-text">caching efficiency factor</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Saved-storage-I-O–b"><span class="nav-number">1.4.1.1.</span> <span class="nav-text">Saved storage I/O–b</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AC-Key-Caching-components"><span class="nav-number">1.4.2.</span> <span class="nav-text">AC-Key Caching components</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Flush-amp-Compaction-Handling"><span class="nav-number">1.4.3.</span> <span class="nav-text">Flush &amp; Compaction Handling</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HAC-Hierarchical-Adaptive-Caching"><span class="nav-number">1.4.4.</span> <span class="nav-text">HAC: Hierarchical Adaptive Caching</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Evaluation"><span class="nav-number">1.5.</span> <span class="nav-text">Evaluation</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#AC-Key的自适应过程展示"><span class="nav-number">1.5.1.</span> <span class="nav-text">AC Key的自适应过程展示</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#性能对比"><span class="nav-number">1.5.2.</span> <span class="nav-text">性能对比</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">1.6.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#AC-Key-Adaptive-Caching-for-LSM-based-Key-Value-Stores"><span class="nav-number">1.</span> <span class="nav-text">AC-Key: Adaptive Caching for LSM-based Key-Value Stores</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#key-word"><span class="nav-number">1.1.</span> <span class="nav-text">key word</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#background"><span class="nav-number">1.2.</span> <span class="nav-text">background</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#LSM-Tree"><span class="nav-number">1.2.1.</span> <span class="nav-text">LSM Tree</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ARC"><span class="nav-number">1.2.2.</span> <span class="nav-text">ARC</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LSM-–-read"><span class="nav-number">1.2.3.</span> <span class="nav-text">LSM – read</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Challenge"><span class="nav-number">1.3.</span> <span class="nav-text">Challenge</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Cache-item-type"><span class="nav-number">1.3.1.</span> <span class="nav-text">Cache item type</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#cache-efficiency"><span class="nav-number">1.3.2.</span> <span class="nav-text">cache efficiency</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Design"><span class="nav-number">1.4.</span> <span class="nav-text">Design</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#caching-efficiency-factor"><span class="nav-number">1.4.1.</span> <span class="nav-text">caching efficiency factor</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Saved-storage-I-O–b"><span class="nav-number">1.4.1.1.</span> <span class="nav-text">Saved storage I/O–b</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AC-Key-Caching-components"><span class="nav-number">1.4.2.</span> <span class="nav-text">AC-Key Caching components</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Flush-amp-Compaction-Handling"><span class="nav-number">1.4.3.</span> <span class="nav-text">Flush &amp; Compaction Handling</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HAC-Hierarchical-Adaptive-Caching"><span class="nav-number">1.4.4.</span> <span class="nav-text">HAC: Hierarchical Adaptive Caching</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Evaluation"><span class="nav-number">1.5.</span> <span class="nav-text">Evaluation</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#AC-Key的自适应过程展示"><span class="nav-number">1.5.1.</span> <span class="nav-text">AC Key的自适应过程展示</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#性能对比"><span class="nav-number">1.5.2.</span> <span class="nav-text">性能对比</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">1.6.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></div>
             
 
           </div>
