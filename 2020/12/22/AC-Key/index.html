@@ -95,7 +95,7 @@
 <meta property="og:image" content="/2020/12/22/AC-Key/cache_size.png">
 <meta property="og:image" content="/2020/12/22/AC-Key/value_size.png">
 <meta property="og:image" content="/2020/12/22/AC-Key/hot_ratio.png">
-<meta property="og:updated_time" content="2020-12-23T10:14:44.876Z">
+<meta property="og:updated_time" content="2020-12-23T10:15:55.573Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="AC-Key阅读笔记">
 <meta name="twitter:description" content="AC-Key: Adaptive Caching for LSM-based Key-Value Stores USENIX ATC’20Fenggang Wu, Ming-Hong Yang, Baoquan Zhang, and David H.C. Du, University of Minnesotahttps://www.usenix.org/conference/atc20/prese">
@@ -542,11 +542,8 @@
 <li>当block ghost cache命中时，会导致point cache的size减小，此时KV cache以及KP cache按照他们size的比例对应减小。</li>
 </ul>
 <ol start="3">
-<li>boundary移动距离：</li>
+<li>boundary移动距离：<br> $d=kE=k{b/s}$</li>
 </ol>
-<ul>
-<li>$d=kE=k{b/s}$</li>
-</ul>
 <h2 id="Evaluation"><a href="#Evaluation" class="headerlink" title="Evaluation"></a>Evaluation</h2><h3 id="AC-Key的自适应过程展示"><a href="#AC-Key的自适应过程展示" class="headerlink" title="AC Key的自适应过程展示"></a>AC Key的自适应过程展示</h3><ol>
 <li><p>offline介绍：<br><img src="/2020/12/22/AC-Key/offline.png" alt=""></p>
 <p> offline是指，在无法动态调整三种cache的size大小的情况下，手动设置KP cache所占比例以及block cache所占的比例进行测试，选择测试结果最优的配置作为最终的固定配置进行实验。</p>
@@ -613,6 +610,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/01/26/netbeans配置/" rel="prev" title="netbeans配置">
+                netbeans配置 <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -693,7 +694,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">23</span>
+                  <span class="site-state-item-count">26</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -704,7 +705,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-count">10</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -715,7 +716,7 @@
               
               <div class="site-state-item site-state-tags">
                 
-                  <span class="site-state-item-count">17</span>
+                  <span class="site-state-item-count">20</span>
                   <span class="site-state-item-name">标签</span>
                 
               </div>
@@ -794,7 +795,7 @@
     <footer id="footer" class="footer">
       <div class="footer-inner">
         <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-<div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+<div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
