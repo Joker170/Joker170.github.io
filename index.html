@@ -382,15 +382,8 @@
       
         
           
+            
           
-          
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2021/05/06/leveldb源码学习/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
         
       
     </div>
@@ -566,26 +559,102 @@
       
         
           
-          rocksdb相对于leveldb的改进
-性能上：
+            <h1 id="rocksdb相对于leveldb的改进"><a href="#rocksdb相对于leveldb的改进" class="headerlink" title="rocksdb相对于leveldb的改进"></a>rocksdb相对于leveldb的改进</h1><ol>
+<li>性能上：</li>
+</ol>
+<ul>
+<li>多线程compaction</li>
+<li>多线程memtable写入</li>
+<li>减少DB互斥锁持有</li>
+<li>优化了基于level的compaction方式以及全局compaction方式</li>
+<li>前缀布隆过滤器</li>
+<li>memtable布隆过滤器</li>
+<li>单个布隆过滤器覆盖整个sstable</li>
+<li>写锁优化</li>
+<li>提升了Iter::Prev()操作的性能</li>
+<li>在进行跳表搜索时调用更少的比较器</li>
+<li>使用huge page申请内存</li>
+</ul>
+<ol start="2">
+<li>用法特点上：</li>
+</ol>
+<ul>
+<li>列族 column families</li>
+<li>事务以及根据下标的批量写</li>
+<li>备份以及检查点</li>
+<li>Merge操作符</li>
+<li>compaction过滤器</li>
+<li>Rocksdb Java</li>
+<li>持久化cache</li>
+<li>在自动进行compaction的同时也可以执行手动compaction</li>
+<li>bulk loading</li>
+<li>前向迭代器和尾部迭代器</li>
+<li>single delete</li>
+<li>范围删除文件</li>
+<li>pin iterator key/value</li>
+</ul>
+<ol start="3">
+<li>数据结构和格式上：</li>
+</ol>
+<ul>
+<li>在memory-only的场景下使用plain table</li>
+<li>memtable有基于向量和基于哈希两种格式</li>
+<li>基于时钟的cache</li>
+<li>可插入的information log</li>
+<li>用blob注释事务日志写入（用于复制）</li>
+</ul>
+<ol start="4">
+<li>协调性上：</li>
+</ol>
+<ul>
+<li>比例限制 （rate limiting）</li>
+<li>可调整的减速和停止阈值</li>
+<li>有参数可使所有文件保持open</li>
+<li>有参数可保留index block 和 布隆过滤器block在block cache中</li>
+<li>多种WAL恢复模式</li>
+<li>Fadvise hints for readahead and to avoid caching in OS page cache（可协调预读、防止在OS页面缓存中缓存）</li>
+<li>可以选择将L0文件的index和布隆过滤器块放在内存中</li>
+<li>更多的压缩类型：zlib、lz4、zstd</li>
+<li>压缩字典</li>
+<li>校验和类型：xxhash</li>
+<li>不同的层大小增大方式以及每层的压缩类型</li>
+</ul>
+<ol start="5">
+<li>管理能力上：</li>
+</ol>
+<ul>
+<li>statistics</li>
+</ul>
+<ul>
+<li>Thread-local profiling</li>
+<li>命令行工具中的更多命令</li>
+<li>用户定义的table properties</li>
+<li>事件监听器</li>
+<li>更多DB性质</li>
+<li>动态参数调整</li>
+<li>从string或map中获取参数</li>
+<li>持久化参数到option files中。</li>
+</ul>
+<blockquote>
+<p>来源: <a href="https://rocksdb.org.cn/doc/Features-Not-in-LevelDB.html" target="_blank" rel="noopener">RocksDB Features that are not in LevelDB</a></p>
+</blockquote>
+<h1 id="compaction操作对rocksdb性能的影响"><a href="#compaction操作对rocksdb性能的影响" class="headerlink" title="compaction操作对rocksdb性能的影响"></a>compaction操作对rocksdb性能的影响</h1><ul>
+<li>单线程情况下：cpu执行compaction就无法处理读写请求。</li>
+<li>多线程情况下：L0到L1的compaction操作无法与其它层的compaction操作并行</li>
+</ul>
+<h2 id="rocksdb的compaction策略"><a href="#rocksdb的compaction策略" class="headerlink" title="rocksdb的compaction策略"></a>rocksdb的compaction策略</h2><p>（compaction主要是重新排序数据、清理过期数据和重复数据等）</p>
+<ul>
+<li>universal compaction(tired compaction的一种)<ul>
+<li>每一个run包含了一段时间内加入的数据</li>
+<li>不同的run的时间段不会重叠</li>
+<li>只对相邻时间段的run进行compaction</li>
+<li>当run累积到一定的数量N时触发compaction</li>
+</ul>
+</li>
+<li>leveled compaction</li>
+</ul>
 
-
-多线程compaction
-多线程memtable写入
-减少DB互斥锁持有
-优化了基于level的compaction方式以及全局compaction方式
-前缀布隆过滤器
-memtable布隆过滤器
-单个布隆过滤器覆盖整个sstable
-写锁优
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2021/03/18/rocksdb学习-1/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
+          
         
       
     </div>
@@ -761,25 +830,153 @@ memtable布隆过滤器
       
         
           
-          字节跳动-C++后台开发一面
-自我介绍
-针对项目提问：
-rockdb原理，了解哪些
-LSM Tree的适用于什么场景
-解释了一下项目针对rocksdb做了什么研究
-问了一下遇到的问题可能是由什么原因引起的
-redis数据结构
-redis中有序集合是用什么实现的，讲了跳表
-跳表插入或查询的时间复杂度
+            <h1 id="字节跳动-C-后台开发"><a href="#字节跳动-C-后台开发" class="headerlink" title="字节跳动-C++后台开发"></a>字节跳动-C++后台开发</h1><h2 id="一面"><a href="#一面" class="headerlink" title="一面"></a>一面</h2><ul>
+<li>自我介绍</li>
+<li>针对项目提问：<ul>
+<li>rockdb原理，了解哪些</li>
+<li>LSM Tree的适用于什么场景</li>
+<li>解释了一下项目针对rocksdb做了什么研究</li>
+<li>问了一下遇到的问题可能是由什么原因引起的</li>
+<li>redis数据结构</li>
+<li>redis中有序集合是用什么实现的，讲了跳表</li>
+<li>跳表插入或查询的时间复杂度</li>
+<li>redis为什么这么快</li>
+<li>问了mysql内部实现原理</li>
+<li>问关系型数据库与KV数据库各自的优缺点</li>
+</ul>
+</li>
+<li>开始问基本知识，操统和网络：<ul>
+<li>TCP滑动窗口</li>
+<li>TCP四次挥手中有一个timewait，什么时候会进入timewait</li>
+<li>进程间通信</li>
+<li>类的内存模型，new了一个对象后，内存空间是怎么样的</li>
+<li>虚函数如何实现</li>
+<li>虚函数表存放在哪里</li>
+</ul>
+</li>
+<li>1道编程题：<ul>
+<li>反转链表中从m到n的部分</li>
+</ul>
+</li>
+</ul>
+<h1 id="阿里云块存储"><a href="#阿里云块存储" class="headerlink" title="阿里云块存储"></a>阿里云块存储</h1><h2 id="阿里云块存储一面"><a href="#阿里云块存储一面" class="headerlink" title="阿里云块存储一面"></a>阿里云块存储一面</h2><ul>
+<li>自我介绍</li>
+<li>项目相关：<ul>
+<li>发现了什么问题？打算怎么解决？</li>
+<li>有没有关注过数据库其他方面导致的性能问题？</li>
+<li>为什么要选这个课题？</li>
+<li>使用什么工具？该工具其他功能？</li>
+<li>CPU cache了解吗</li>
+<li>说说缓存一致性</li>
+</ul>
+</li>
+<li>操作系统：<ul>
+<li>进程线程的区别</li>
+<li>进程同步，方法及原理</li>
+<li>线程同步</li>
+<li>锁，及原理</li>
+<li>如何用互斥锁实现读写锁</li>
+<li>协程</li>
+<li>线程切换开销，具体有哪些</li>
+</ul>
+</li>
+<li>C/C++:<ul>
+<li>关键字</li>
+<li>static作用，static变量以及static函数的作用</li>
+<li>虚函数，作用及原理</li>
+<li>队列和栈，如何用队列实现栈</li>
+<li>哈希和map</li>
+</ul>
+</li>
+<li>编程题：<ul>
+<li>一个有序数组从中间分成两段，将后一段移到数组前面，查找某数在数组中的位置。</li>
+</ul>
+</li>
+</ul>
+<h1 id="腾讯TEG-云平台架构"><a href="#腾讯TEG-云平台架构" class="headerlink" title="腾讯TEG 云平台架构"></a>腾讯TEG 云平台架构</h1><ul>
+<li>介绍背景和项目</li>
+<li>针对项目提问（34min）</li>
+<li>基础知识：<ul>
+<li>static</li>
+<li>C++比较新的特性用过吗</li>
+<li>多态，虚函数实现原理</li>
+<li>继承关系中的构造析构顺序</li>
+<li>什么是IO多路复用</li>
+<li>七层模型</li>
+</ul>
+</li>
+<li>算法题：<ul>
+<li>寻找普通二叉树中的两个节点的最近公共父节点。</li>
+</ul>
+</li>
+</ul>
+<h1 id="腾讯TEG-云平台架构-一面"><a href="#腾讯TEG-云平台架构-一面" class="headerlink" title="腾讯TEG 云平台架构 一面"></a>腾讯TEG 云平台架构 一面</h1><ul>
+<li>自我介绍</li>
+<li>项目</li>
+<li>自定义的一个类如果要在map里面使用需要实现什么函数<ul>
+<li>为什么不是operator&lt;=</li>
+</ul>
+</li>
+<li>头文件使用尖括号和双引号的区别</li>
+<li>继承和模板有什么区别，分别适用于什么场景</li>
+<li>内存泄漏，C++如何避免内存泄漏<ul>
+<li>RAII</li>
+</ul>
+</li>
+<li>linux 网络抓包命令，查看所有tcp连接的命令</li>
+<li>什么是堆，讲一下堆排序，总的时间复杂度，建堆的时间复杂度</li>
+<li>快排的时间复杂度，最坏情况复杂度，如何优化最坏情况？（partition的时候有没有什么技巧）</li>
+<li>插入排序的时间复杂度，在数组接近有序的时候的时间复杂度</li>
+<li>B和B+树的区别</li>
+<li>LSM树</li>
+<li>send()函数返回成功了数据包一定被发送出去了吗</li>
+<li>什么时候TIME_WAIT，有什么意义</li>
+<li>哈希冲突，解决方法</li>
+<li>缓存淘汰策略</li>
+<li>redis持久化方式<ul>
+<li>rdb方式如何防止持久化过程阻塞掉网络请求</li>
+</ul>
+</li>
+<li>fork函数</li>
+<li>编程：<ul>
+<li>实现一个存放自定义类Student的List</li>
+<li>一个字符串数字，删除k个数字得到能表示的最小数字</li>
+</ul>
+</li>
+</ul>
+<h1 id="腾讯TEG-云平台架构-二面"><a href="#腾讯TEG-云平台架构-二面" class="headerlink" title="腾讯TEG 云平台架构 二面"></a>腾讯TEG 云平台架构 二面</h1><ul>
+<li>自我介绍</li>
+<li>redis内存模型 如何存储key？</li>
+<li>extern C</li>
+<li>static<ul>
+<li>static成员函数可以通过对象访问吗</li>
+</ul>
+</li>
+<li>虚函数底层原理</li>
+<li>构造析构虚函数</li>
+<li>vector底层<ul>
+<li>扩容、缩容</li>
+</ul>
+</li>
+<li>map、unordered map</li>
+<li>linux 内核哪个版本</li>
+<li>目录 用户目录 etc proc dev</li>
+<li>三次握手<ul>
+<li>第三次ack丢失的时候客户端和服务器怎么处理</li>
+</ul>
+</li>
+<li>慢启动、拥塞避免</li>
+<li>浏览器输入url</li>
+<li>get 和 post的区别</li>
+<li>进程线程</li>
+<li>进程间通信</li>
+<li>协程<ul>
+<li>为什么切换开销比线程小？</li>
+</ul>
+</li>
+</ul>
 
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2021/03/03/面经总结/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
+          
         
       
     </div>
@@ -955,18 +1152,24 @@ redis中有序集合是用什么实现的，讲了跳表
       
         
           
-          Abstract
-影响memcached性能的因素：memory allocation among different item classes.
-本文提出了一种用于memcached的轻量的、准确的内存分配模式。
-早期的内存分配优化工作：LAMA，使用了基于footprint的MRC（miss r
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2021/02/25/paper-LAMA/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
+            <h1 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h1><ul>
+<li>影响memcached性能的因素：memory allocation among different item classes.</li>
+<li>本文提出了一种用于memcached的轻量的、准确的内存分配模式。</li>
+<li>早期的内存分配优化工作：LAMA，使用了基于footprint的MRC（miss ratio curves），但没有考虑memcached的删除操作，且空间开销非常大。</li>
+<li>相比于LAMA，本文提出的方法的空间开销为LAMA的3%，能够处理读、写、删除操作，且miss rate降低了15%、平均响应时间减少了12.3%。</li>
+</ul>
+<h1 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h1><ul>
+<li>memcached，最常用的分布式内存键值对缓存系统。</li>
+<li>memcached中的items根据大小被分为不同的class，而内存分配不考虑数据的locality。</li>
+<li>slab calcification: 当可用的slab被创建时，分配的空间无法再根据访问模式的改变而调整。</li>
+<li>LAMA（locality-aware memory allocation）</li>
+<li>为了保持数据一致，写操作直接更新后端数据库，并将对应的key从memcached中删除。（？）</li>
+</ul>
+<h1 id="MRC-construction"><a href="#MRC-construction" class="headerlink" title="MRC construction"></a>MRC construction</h1><ul>
+<li>aet: average eviction time</li>
+</ul>
+<h1 id="Lightweight-and-Accurate-Memory-Allocation"><a href="#Lightweight-and-Accurate-Memory-Allocation" class="headerlink" title="Lightweight and Accurate Memory Allocation"></a>Lightweight and Accurate Memory Allocation</h1><h2 id="Memory-Allocation-Controller"><a href="#Memory-Allocation-Controller" class="headerlink" title="Memory Allocation Controller"></a>Memory Allocation Controller</h2>
+          
         
       
     </div>
@@ -1142,23 +1345,19 @@ redis中有序集合是用什么实现的，讲了跳表
       
         
           
-          记录一下装完netbeans后所进行的一些配置
-准备
-JDK
-NetBeans8.2
+            <p>记录一下装完netbeans后所进行的一些配置</p>
+<h2 id="准备"><a href="#准备" class="headerlink" title="准备"></a>准备</h2><ul>
+<li>JDK</li>
+<li>NetBeans8.2</li>
+</ul>
+<p>安装NetBeans8.2。</p>
+<h2 id="C-C-插件"><a href="#C-C-插件" class="headerlink" title="C/C++插件"></a>C/C++插件</h2><p>本来安装了NetBeans12.0，在插件列表里找不到C/C++插件。于是改装NetBeans8.2就可以成功打开C/C++项目。</p>
+<h2 id="远程调试"><a href="#远程调试" class="headerlink" title="远程调试"></a>远程调试</h2><ul>
+<li>工具 -&gt; 选项 -&gt; C/C++ -&gt; 编辑 -&gt; 添加</li>
+<li>填写主机及端口</li>
+</ul>
 
-安装NetBeans8.2。
-C/C++插件本来安装了NetBeans12.0，在插件列表里找不到C/C++插件。于是改装NetBeans8.2就可以成功打开C/C++项目。
-远程调试
-工具 -&gt; 选项 -
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2021/01/26/netbeans配置/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
+          
         
       
     </div>
@@ -1334,16 +1533,178 @@ C/C++插件本来安装了NetBeans12.0，在插件列表里找不到C/C++插件�
       
         
           
-          AC-Key: Adaptive Caching for LSM-based Key-Value Stores
-USENIX ATC’20Fenggang Wu, Ming-Hong Yang, Baoquan Zhang, and David H.C. Du, University of Minn
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2020/12/22/AC-Key/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
+            <h1 id="AC-Key-Adaptive-Caching-for-LSM-based-Key-Value-Stores"><a href="#AC-Key-Adaptive-Caching-for-LSM-based-Key-Value-Stores" class="headerlink" title="AC-Key: Adaptive Caching for LSM-based Key-Value Stores"></a>AC-Key: Adaptive Caching for LSM-based Key-Value Stores</h1><blockquote>
+<p>USENIX ATC’20<br>Fenggang Wu, Ming-Hong Yang, Baoquan Zhang, and David H.C. Du, University of Minnesota<br><a href="https://www.usenix.org/conference/atc20/presentation/wu-fenggang" target="_blank" rel="noopener">https://www.usenix.org/conference/atc20/presentation/wu-fenggang</a></p>
+</blockquote>
+<h2 id="key-word"><a href="#key-word" class="headerlink" title="key word"></a>key word</h2><ul>
+<li>使用cache来提升基于LSM Tree的KV store读性能</li>
+<li>ARC算法</li>
+<li>cache benefit and cache cost</li>
+</ul>
+<h2 id="background"><a href="#background" class="headerlink" title="background"></a>background</h2><h3 id="LSM-Tree"><a href="#LSM-Tree" class="headerlink" title="LSM Tree"></a>LSM Tree</h3><p>特点：写友好，读不友好</p>
+<p><img src="/2020/12/22/AC-Key/lsm.png" alt=""></p>
+<p>LSM Tree基本原理：<br>总体来说，LSM Tree分为两部分，一部分存在于DRAM——MemTable，一部分存在于Storage——SST files。KV（Key-Value）对存储在一个一个的Data Block中。当DRAM中的MemTable满了之后，会通过flush操作将数据刷到Storage中。Storage中的SSTable以树状形式排列，flush操作会首先将数据刷到L0的一个SST中。当L0满后通过compaction操作将数据merge到L1中，以此类推。同时，每个SSTable中存放的不只是data block，还包括BF block——布隆过滤器，以及Index Block——当前SSTable 存放的Key的索引。以及Storage中的每一个level（除L0外）会有一个特殊的文件包含了该层所有SSTable存储的Key范围。</p>
+<p>这就导致LSM Tree在查找数据时需要读出多个块，即经过多次storage I/O，才能查找出结果，开销较大。</p>
+<h3 id="ARC"><a href="#ARC" class="headerlink" title="ARC"></a>ARC</h3><p>一种使用ghost cache动态调整cache大小的算法</p>
+<p><img src="/2020/12/22/AC-Key/arc.png" alt=""></p>
+<p>ARC基本原理：<br>首先，Cache中维护了4个LRU，2个以Frequency为策略, 2个以Recency为策略。图中的方框表示Real Cache，里面存放了真实的数据，横线表示Ghost cache，其size相对较小，存放的是从Real cache中被剔除的数据的元数据，例如page number等。当Recency侧的ghost cache命中时，该数据应被放回到Recency real cache中，因此Recency real cache的size需要增大，动态的boundary需要向Frequency侧移动；同理，当Frequency侧的ghost cache命中时boundary向Recency侧移动，从而达到cache size的动态自适应。</p>
+<h3 id="LSM-–-read"><a href="#LSM-–-read" class="headerlink" title="LSM – read"></a>LSM – read</h3><p>基于LSM Tree的KV Store的读请求有两种类型：</p>
+<ul>
+<li>point lookup 点查找：单个KV对</li>
+<li>range query 范围查找：范围内多个KV对</li>
+</ul>
+<h2 id="Challenge"><a href="#Challenge" class="headerlink" title="Challenge"></a>Challenge</h2><h3 id="Cache-item-type"><a href="#Cache-item-type" class="headerlink" title="Cache item type"></a>Cache item type</h3><ol>
+<li>首先，Cache中可以存放的item类型有三种：</li>
+</ol>
+<ul>
+<li>block（basic I/O unit），例如data block，BF block，index block</li>
+<li>KV，即Key Value对</li>
+<li>KP，即Key Pointer对，pointer为指向storage的指针，实际数据需要经过一次storage I/O才能获取。</li>
+</ul>
+<p><img src="/2020/12/22/AC-Key/cache_type.png" alt=""></p>
+<ol start="2">
+<li>这三种类型的cache有各自的特点：</li>
+</ol>
+<ul>
+<li>block能存放多个有序的KV对，非常适合范围查找。</li>
+<li>KV cache存放了一个一个的KV对，不需要额外的I/O即可读出数据，适合点查找，但当Value的size较大时空间利用率较低，因此适用于value size较小的情况。</li>
+<li>KP cache将Value转变为指针，尽管需要一次I/O，但cache的空间利用率大，适用于点查找中value size较大的情况。</li>
+<li>同时，相比KP cache来说，KV cache应对热点问题更加有效。</li>
+</ul>
+<ol start="3">
+<li>目前存在的问题：<br><img src="/2020/12/22/AC-Key/challenge.png" alt=""></li>
+</ol>
+<ul>
+<li>目前较为成熟的几个产品例如LevelDB, RocksDB, Cassandra，都只实现了三种cache类型中的一种或两种，不能够很好地兼容点查找和范围查找，并且无法动态调整大小。</li>
+</ul>
+<ol start="4">
+<li>因此，本文提出，<strong>Key Challenge is:</strong></li>
+</ol>
+<ul>
+<li><strong>adjust the size of different types of caches according to dynamic workloads</strong></li>
+</ul>
+<h3 id="cache-efficiency"><a href="#cache-efficiency" class="headerlink" title="cache efficiency"></a>cache efficiency</h3><p>另外，基于LSM Tree的特点，使用cache来提高读性能还需要考虑<strong>cache benefit与cache cost之间的平衡</strong>：</p>
+<ul>
+<li>cache benefit：一次cache hit所能节省的storage I/O<ul>
+<li>Key存在的level越深，能够节省的storage I/O越多</li>
+</ul>
+</li>
+<li>cache cost：Cache entry占用的cache space</li>
+</ul>
+<h2 id="Design"><a href="#Design" class="headerlink" title="Design"></a>Design</h2><h3 id="caching-efficiency-factor"><a href="#caching-efficiency-factor" class="headerlink" title="caching efficiency factor"></a>caching efficiency factor</h3><p>为了权衡cache benefit与cache cost，本文设计了一个<strong>caching efficiency factor：</strong></p>
+<p><img src="/2020/12/22/AC-Key/E.png" alt=""></p>
+<p>定义为benefit与cost的比值，即 节省的I/O与所占的cache space之间的比值。</p>
+<p>根据这个factor E，本文改进了：</p>
+<ul>
+<li>LRU → E-LRU: 选择最近最少使用的<strong>a</strong>个条目，从中剔除<strong>E</strong>值最小的条目</li>
+<li>ARC → E-ARC：根据E来确定动态boundary移动的距离</li>
+</ul>
+<h4 id="Saved-storage-I-O–b"><a href="#Saved-storage-I-O–b" class="headerlink" title="Saved storage I/O–b"></a>Saved storage I/O–b</h4><ol>
+<li>b的计算方式：</li>
+</ol>
+<p><img src="/2020/12/22/AC-Key/b.png" alt=""></p>
+<ul>
+<li>对于block cache来说，因为一个block是最基本的I/O单元，因此若发现下一个要读取的block已经在cache中了，则该次I/O被节省，因此$b=1$</li>
+<li>对于KV cache来说，因为可以直接在cache中匹配所要查找的key，若命中了，则在storage中查找该key的所有I/O都可以被节省，此时b被定义为一个m相关的函数，m为查找该key要经过的SSTable的数量。</li>
+<li>对于KP cache来说，cache命中时仍要比KV cache多一次I/O，因此可节省的I/O要比KV cache少1。</li>
+</ul>
+<ol start="2">
+<li>m的计算方式：</li>
+</ol>
+<p><img src="/2020/12/22/AC-Key/m.png" alt=""></p>
+<ul>
+<li>假设Storage中$L_0$的的SSTable数量为$n_0$，则：<ul>
+<li>当要查找的key存在于$L_0$时，需要一个一个遍历$L_0$中的SSTable直到找到key，因此平均下来$m=n_0/2$</li>
+<li>当要查找的key存在于其它level时，需要首先遍历$L_0$中的所有SSTable，即$n_0$次I/O，再往下查找每个level中存放有key范围的特殊文件，因此是$l$次I/O，所以$m=l+n_0$</li>
+</ul>
+</li>
+</ul>
+<ol start="3">
+<li><p>$f(m)$<br> $f(m)$取决于KV store的实现，不过在通常情况下：</p>
+<ul>
+<li><p>$f(m) = m+2$</p>
+<p>因为查找一个KV对首先要读出m个BF block(布隆过滤器)来找到key所在的SSTable，再读出1个index block来找到key所在的data block，最后再将data block读出来找到对应的key value。</p>
+</li>
+</ul>
+</li>
+</ol>
+<h3 id="AC-Key-Caching-components"><a href="#AC-Key-Caching-components" class="headerlink" title="AC-Key Caching components"></a>AC-Key Caching components</h3><p><img src="/2020/12/22/AC-Key/component.png" alt=""></p>
+<ol>
+<li>总体框架：</li>
+</ol>
+<ul>
+<li>AC Key将block、KV以及KP整合进cache中，并使用E-ARC算法动态调整大小。</li>
+</ul>
+<ol start="2">
+<li>Block cache</li>
+</ol>
+<ul>
+<li>包含data block、 BF block以及index block</li>
+</ul>
+<ol start="3">
+<li>KV cache and KP cache</li>
+</ol>
+<ul>
+<li>若有新的key需要加入cache，则首先加入到KP cache中，此key被定义为warm key。</li>
+<li>当KP cache中的key命中时，该key升级为hot key，经过1次storage I/O取出value后将KV对保存到KV cache中。</li>
+<li>保存到KV cache中的hot key无法回退为warm key，因其pointer信息已经丢失。</li>
+</ul>
+<h3 id="Flush-amp-Compaction-Handling"><a href="#Flush-amp-Compaction-Handling" class="headerlink" title="Flush &amp; Compaction Handling"></a>Flush &amp; Compaction Handling</h3><p>由于LSM Tree的flush操作和compaction操作会影响到cache的有效性，所以还需要做相应的处理。<br>（处理read请求时，KV store首先会在MemTable中查找，未查找到的才会在cache中查找）</p>
+<ol>
+<li>flush handling</li>
+</ol>
+<ul>
+<li>在进行flush时，根据MemTable中的内容在KV cache和KP cache中匹配对应的key并更新。</li>
+<li>由于flush时只会在storage中产生新的块，不会影响到旧的块，因此block cache无需更新。</li>
+</ul>
+<ol start="2">
+<li>compaction handling</li>
+</ol>
+<ul>
+<li>compaction会影响KP cache和block cache，但不会影响KV cache。</li>
+<li>对于KP cache来说，只需要将对应的指针更新为compaction后的新地址。</li>
+<li>对于block cache来说，需要移除失效的block，并以key范围与之有最大重叠的新block代替。</li>
+</ul>
+<h3 id="HAC-Hierarchical-Adaptive-Caching"><a href="#HAC-Hierarchical-Adaptive-Caching" class="headerlink" title="HAC: Hierarchical Adaptive Caching"></a>HAC: Hierarchical Adaptive Caching</h3><p><img src="/2020/12/22/AC-Key/hac.png" alt=""></p>
+<ol>
+<li>分层的自适应cache总体架构：</li>
+</ol>
+<ul>
+<li>上层分为point cache和block cache，对其应用E-ARC算法动态调整大小。</li>
+<li>下层point cache内部分为KV cache和KP cache，对其应用E-ARC算法动态调整大小。</li>
+</ul>
+<ol start="2">
+<li>boundary移动规则：</li>
+</ol>
+<ul>
+<li>当KV ghost cache或KP ghost cache命中时，都会导致point cache的size增大，而只有当增大的size达到了一个block的size时，point cache与block cache之间的boundary才会真正向block cache侧移动。</li>
+<li>当block ghost cache命中时，会导致point cache的size减小，此时KV cache以及KP cache按照他们size的比例对应减小。</li>
+</ul>
+<ol start="3">
+<li>boundary移动距离：<br> $d=kE=k{b/s}$</li>
+</ol>
+<h2 id="Evaluation"><a href="#Evaluation" class="headerlink" title="Evaluation"></a>Evaluation</h2><h3 id="AC-Key的自适应过程展示"><a href="#AC-Key的自适应过程展示" class="headerlink" title="AC Key的自适应过程展示"></a>AC Key的自适应过程展示</h3><ol>
+<li><p>offline介绍：<br><img src="/2020/12/22/AC-Key/offline.png" alt=""></p>
+<p> offline是指，在无法动态调整三种cache的size大小的情况下，手动设置KP cache所占比例以及block cache所占的比例进行测试，选择测试结果最优的配置作为最终的固定配置进行实验。</p>
+</li>
+</ol>
+<p><img src="/2020/12/22/AC-Key/adaptive.png" alt=""></p>
+<ul>
+<li>横坐标0-1为range query，可以看到此时全为block cache</li>
+<li>横坐标1-3为point cache，block cache急剧减少至0，KV cache和KP cache不断上升并动态调整至平衡。</li>
+<li>可以看到AC-Key与offline相比，读性能相近甚至更优。</li>
+</ul>
+<h3 id="性能对比"><a href="#性能对比" class="headerlink" title="性能对比"></a>性能对比</h3><ul>
+<li>rocksdb相当于pure block</li>
+</ul>
+<ol>
+<li>varying cache size<br><img src="/2020/12/22/AC-Key/cache_size.png" alt=""></li>
+<li>varying value size<br><img src="/2020/12/22/AC-Key/value_size.png" alt=""></li>
+<li>varying hot key ration and range query ratio<br><img src="/2020/12/22/AC-Key/hot_ratio.png" alt=""></li>
+</ol>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>AC-Key是一种使用cache来提升基于LSM Tree的KV store读性能的设计，在cache中整合了block cache、KV cache以及KP cache来适应不同类型的读请求，并且运用了一种改进的ARC算法动态调整cache大小来提高cache的空间利用率。</p>
+
+          
         
       
     </div>
@@ -1519,17 +1880,27 @@ USENIX ATC’20Fenggang Wu, Ming-Hong Yang, Baoquan Zhang, and David H.C. Du, Un
       
         
           
-          读鲁迅《华盖集》以及《华盖集续编》
-我以为如果艺术之宫里有这么麻烦的禁令，倒不如不进去；还是站在沙漠上，看看飞沙走石，乐则大笑，悲则大叫，愤则大骂，即使被沙砾打得遍身粗糙，头破血流，而时时抚摩自己的凝血，觉得若有花纹，也未必不及跟着中国的文士们去陪莎士比亚吃黄油面包之有趣。(华盖集-题记)
-我看中国
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2020/11/25/luxun-huagaiji/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
+            <h3 id="读鲁迅《华盖集》以及《华盖集续编》"><a href="#读鲁迅《华盖集》以及《华盖集续编》" class="headerlink" title="读鲁迅《华盖集》以及《华盖集续编》"></a>读鲁迅《华盖集》以及《华盖集续编》</h3><ul>
+<li>我以为如果艺术之宫里有这么麻烦的禁令，倒不如不进去；还是站在沙漠上，看看飞沙走石，乐则大笑，悲则大叫，愤则大骂，即使被沙砾打得遍身粗糙，头破血流，而时时抚摩自己的凝血，觉得若有花纹，也未必不及跟着中国的文士们去陪莎士比亚吃黄油面包之有趣。(华盖集-题记)<br><br></li>
+<li>我看中国书时，总觉得就沉静下去，与实人生离开；读外国书——但除了印度——时，往往就与人生接触，想做点事。中国书虽有劝人入世的话，也多是僵尸的乐观；外国书虽然是颓唐和厌世的，但却是活人的颓唐和厌世。少看中国书，其结果不过不能作文而已。但现在的青年最要紧的是行，不是言。只要是活人，不能作文算什么大不了的事。(华盖集-青年必读书)<br><br></li>
+<li>在这样”不留余地”空气的围绕里，人们的精神大抵要被挤小的。（华盖集-忽然想到）<br><br></li>
+<li>历史上都写着中国的灵魂，指示着将来的命运，只因为涂饰太厚，废话太多，所以很不容易察出底细来。（华盖集-忽然想到）<br><br></li>
+<li>伶俐人实在伶俐，所以，决不攻难古人，动摇古例的。古人做过的事，无论什么，今人也都会做出来。而辩护古人，也就是辩护自己。况且我们是神州华胄，敢不”绳其祖武”么？（华盖集-忽然想到）<br><br></li>
+<li>讲话和写文章，似乎都是失败者的征象。正在和命运恶战的人，顾不到这些。（华盖集-通讯）<br><br></li>
+<li>暴君的专制使人们变成冷嘲，愚民的专制使人们变成死相。（华盖集-忽然想到）<br><br></li>
+<li>世上如果还有真要活下去的人们，就先该敢说，敢笑，敢哭，敢怒，敢骂，敢打，在这可诅咒的地方击退了可诅咒的时代！（华盖集-忽然想到）<br><br></li>
+<li>正当苦痛，即说不出苦痛来，佛说极苦地狱中的鬼魂，也反而并无叫唤！（华盖集-“碰壁”之后）<br><br></li>
+<li>我所憎恶的太多了，应该自己也得到憎恶，这才还有点像活在人间；如果收到的乃是相反的布施，于我倒是一个冷嘲，使我对于自己也要大加侮蔑；如果收到的是吞吞吐吐的不知道算什么，则使我感到将要呕哕似的恶心。然而无论如何，”流言”总不能吓哑我的嘴……。（华盖集-我的”籍”和”系”）<br><br></li>
+<li>一国当衰弊之际，总有两种意见不同的人。一是民气论者，侧重国民的气概，一是民力论者，侧重国民的实力。前者多则国家终亦渐弱，后者多则将强。（华盖集-忽然想到）<br><br></li>
+<li>我每看运动会时，常常这样想：优胜者固然可敬，但那虽然落后而仍非跑到终点不止的竞技者，和见了这样竞技者而肃然不笑的看客，乃正是中国将来的脊梁。（华盖集-这个与那个）<br><br><br><br></li>
+<li>活在沙漠似的北京城里，枯燥当然是枯燥的，但偶然看看世态，除了百物昂贵之外，究竟还是五花八门，创造艺术的也有，制造流言的也有，肉麻的也有，有趣的也有…这大概就是北京之所以为北京的缘故，也就是人们总还要奔凑聚集的缘故。（华盖集续编-有趣的消息）<br><br></li>
+<li>惟有民魂是值得宝贵的，惟有他发扬起来，中国才有真进步。（华盖集续编-学界的三魂）<br><br></li>
+<li>真正的勇士，敢于直面惨淡的人生，敢于正视淋漓的鲜血。这是怎样的哀痛者和幸福者？然而造化又常常为庸人设计，以时间的流驶，来洗涤旧迹，仅使留下淡红的血色和微漠的悲哀。在这淡红的血色和微漠的悲哀中，又给人暂得偷生，维持着这似人非人的世界。我不知道这样的世界何时是一个尽头！（华盖集续编-纪念刘和珍君）<br><br></li>
+<li>我向来是不惮以最坏的恶意，来推测中国人的，然而我还不料，也不信竟会下劣凶残到这地步。（华盖集续编-纪念刘和珍君）<br><br></li>
+<li>惨象，已使我目不忍视了；流言，尤使我耳不忍闻。我还有什么话可说呢？我懂得衰亡民族之所以默无声息的缘由了。沉默呵，沉默呵！不在沉默中爆发，就在沉默中灭亡。（华盖集续编-纪念刘和珍君）</li>
+</ul>
+
+          
         
       
     </div>
@@ -1705,21 +2076,70 @@ USENIX ATC’20Fenggang Wu, Ming-Hong Yang, Baoquan Zhang, and David H.C. Du, Un
       
         
           
-          Redis环境配置记录
-记录在centos上安装redis的过程
+            <h2 id="Redis环境配置记录"><a href="#Redis环境配置记录" class="headerlink" title="Redis环境配置记录"></a>Redis环境配置记录</h2><blockquote>
+<p>记录在centos上安装redis的过程</p>
+</blockquote>
+<ol>
+<li><p>下载Redis软件包<br><code>wget http://download.redis.io/releases/redis-6.0.0.tar.gz</code><br>选择最新版redis压缩包进行下载</p>
+</li>
+<li><p>解压并安装<br><code>tar xvf redis-6.0.0.tar.gz</code><br><code>cd redis-6.0.0</code><br><code>make</code><br><code>sudo make install PREFIX=/usr/local/redis</code></p>
+</li>
+<li><p>创建redis命令软链接<br><code>sudo ln -s /usr/local/redis/bin/redis-server /usr/bin/redis-server</code><br>上述命令为redis-server创建了软链接，这样在任何目录下都能启动redis服务器，对客户端、benchmark等也可以进行同样的软链接操作。</p>
+</li>
+<li><p>安装libatomic.so.l<br>启动redis服务器时遇到error：<br><code>redis-server: error while loading shared libraries: libatomic.so.1: cannot open shared object file: No such file or directory</code><br>安装libatomic即可解决：<br><code>sudo yum -y install libatomic</code></p>
+</li>
+<li><p>启动redis集群<br>为多个server修改配置文件以配置不同的端口、开启集群模式等，<br>然后运行多个server，每个server启动命令如下：<br><code>redis-server ./redis-6.0.0/conf/redis-6379.conf</code></p>
+</li>
+<li><p>后台查看server运行状态<br><code>ps -fu username</code> 可以查看用户名下运行的所有进程</p>
+<p><img src="/2020/10/04/Redis环境配置/ps-result.png" alt=""></p>
+</li>
+<li><p>启动后客户端连接服务器<br><code>redis-cli -h xxx -p xxx</code><br><code>-h</code> 接server所在的主机ip， <code>-p</code>接server运行端口</p>
+</li>
+<li><p>发现客户端无法连接server</p>
+<ul>
+<li>修改server的配置文件：<ul>
+<li>注释掉 <code>bind 127.0.0.1</code> </li>
+<li>将 <code>protected-mode yes</code> 改为 <code>protected-mode no</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>重新启动多个server</p>
+</li>
+<li><p>打开端口号：<br><code>iptables -I INPUT -p tcp --dport xxxx -j ACCEPT</code><br>查看开放端口：<br><code>sudo iptables -L -n</code><br>关闭端口：<br><code>iptables -A OUTPUT -p tcp --dport xxxx -j DROP</code></p>
+</li>
+</ol>
+<hr>
+<p>2020.10.4 遇到的问题：</p>
+<ul>
+<li>位于另外一台主机的client无法连接上server：<ul>
+<li>两台主机之间需要通过内网访问</li>
+<li>需要注释掉redis配置文件中对ip地址的绑定</li>
+<li>关闭防火墙</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="集群启动"><a href="#集群启动" class="headerlink" title="集群启动"></a>集群启动</h2><blockquote>
+<p>记录集群启动过程</p>
+</blockquote>
+<ol>
+<li>在主机1上启动6个server节点</li>
+<li>在主机2上连接其中一个节点并进行节点握手：<br><code>redis-cli -c -h xxxx(host ip) -p 6379</code><br><code>6379&gt; cluster meet xxxx 6380/6381/6382/6383/6384</code><br><code>6379&gt; quit</code></li>
+<li>在主机2上为6个server分配16384个slots：<br><code>&gt; redis-cli -h xxxx -p 6379 cluster addslots {0..2729}</code><br>其余5个server节点类似。</li>
+<li>查看集群：<br><code>6379&gt; cluster nodes</code><br><img src="/2020/10/04/Redis环境配置/cluster-nodes.png" alt=""></li>
+<li>测试集群：<br><code>6379&gt; set university &quot;SYSU&quot;</code><br><img src="/2020/10/04/Redis环境配置/test-set.jpg" alt=""></li>
+<li>使用benchmark测试集群：<br><img src="/2020/10/04/Redis环境配置/test-benchmark.png" alt=""></li>
+</ol>
+<p><strong>集群启动方法二：</strong></p>
+<p><code>redis-cli --cluster create host1:port1 host2:port2 ...</code></p>
+<h2 id="监控集群"><a href="#监控集群" class="headerlink" title="监控集群"></a>监控集群</h2><ol>
+<li>安装redis-stat<br>采用 <code>gem install redis-stat</code> 报错：<br><img src="/2020/10/04/Redis环境配置/gem-redisstat-error.png" alt=""><br>于是下载<a href="https://github.com/junegunn/redis-stat/releases" target="_blank" rel="noopener">github</a>上的jar包后，<br>通过<code>java -jar redis-stat-0.4.14.jar --server</code>直接启动redis-stat</li>
+</ol>
+<p>redis-stat 参考 <a href="https://github.com/junegunn/redis-stat" target="_blank" rel="noopener">https://github.com/junegunn/redis-stat</a></p>
+<hr>
 
-
-下载Redis软件包wget http://download.redis.io/releases/redis-6.0.0.tar.gz选择最新版redis压缩包进行下载
-
-解压并安装tar xvf redis-6.0.0.tar.
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2020/10/04/Redis环境配置/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
+          
         
       
     </div>
@@ -1895,19 +2315,62 @@ USENIX ATC’20Fenggang Wu, Ming-Hong Yang, Baoquan Zhang, and David H.C. Du, Un
       
         
           
-          读尼采《悲剧的诞生》日神——阿波罗，酒神——狄奥尼索斯。日神象征造型的艺术，酒神象征音乐的艺术。两者的结合则诞生了悲剧艺术。
-唯有作为审美现象，世界之此在才是合理的。
-1. 从希腊人出发
-希腊人越来越强烈的对美的渴求，对节庆、快乐、新崇拜的渴求，真的起于缺失、匮乏、伤感和痛苦吗？
-悲剧从何而来呢？莫
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2020/10/02/读《悲剧的诞生》/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
+            <h2 id="读尼采《悲剧的诞生》"><a href="#读尼采《悲剧的诞生》" class="headerlink" title="读尼采《悲剧的诞生》"></a>读尼采《悲剧的诞生》</h2><p>日神——阿波罗，酒神——狄奥尼索斯。<br>日神象征造型的艺术，酒神象征音乐的艺术。<br>两者的结合则诞生了悲剧艺术。</p>
+<p><strong>唯有作为审美现象，世界之此在才是合理的。</strong></p>
+<h3 id="1-从希腊人出发"><a href="#1-从希腊人出发" class="headerlink" title="1. 从希腊人出发"></a>1. 从希腊人出发</h3><ul>
+<li>希腊人越来越强烈的对美的渴求，对节庆、快乐、新崇拜的渴求，真的起于缺失、匮乏、伤感和痛苦吗？</li>
+<li>悲剧从何而来呢？莫非来自快乐，来自力量，来自充沛的健康，来自过大的丰富么？</li>
+<li>莫非癫狂未必是蜕化、衰败、迟暮文化的征兆。如果说希腊人正处于青春的丰富当中，具有追求悲剧的意志，成了悲观主义者，那又如何呢？如果说正是癫狂给希腊带来了极大的福祉，那又如何呢？如果希腊人正处于崩溃和虚弱时代，变得越来越乐观、肤浅、虚伪，越来越热衷于逻辑和对世界的逻辑化，因而也变得“更快乐”和“更科学”了，那又如何？</li>
+<li>怎么？一切与“现代观念”和民主趣味的偏见相反，乐观主义的胜利，已经占了上风的理性，实践上和理论上的功利主义，类似于与它同时代的民主制，可能是精力下降、暮年将至、生理疲惫的一个征兆吗？</li>
+<li>阿波罗，作为一切造型力量的神，同时也是预言之神。阿波罗乃是“闪耀者、发光者”，是光明之神，他也掌管着内心幻想世界的美的假象。</li>
+<li>当人由于根据律在其某个形态中似乎遭遇到例外，从而突然对现象的认识形式生出怀疑时，人就会感到无比恐惧。如果在这种恐惧之外还加上那种充满喜悦的陶醉，那么我们就能洞察到狄奥尼索斯的本质。</li>
+<li>在这里，在醉的战栗中，整个自然的艺术强力得到了彰显，臻至“太一”最高的狂喜满足。</li>
+<li>阿波罗与它的对立面，即狄奥尼索斯，是两种艺术力量，它们是从自然本身中突现出来的，无需人类艺术家的中介作用。而且在其中，两者的艺术冲动首先是直接地获得满足的：一方面作为梦的形象世界，其完美性与个体的知识程度和艺术修养毫无联系，另一方面乃作为醉的现实性，它同样也不重视个体，甚至力求消灭个体，通过一种神秘的统一感使个体得到解脱。</li>
+</ul>
+<h3 id="2-从音乐出发"><a href="#2-从音乐出发" class="headerlink" title="2. 从音乐出发"></a>2. 从音乐出发</h3><ul>
+<li>旋律是普遍性的东西，它能在多种文本中承受多种客观化。</li>
+<li>按照语言模仿现象世界和形象世界还是模仿音乐世界，我们可以区分出希腊民族语言史上的两大主流。</li>
+<li>在荷马与品达之间，必定奏响过纵情狂欢的奥林匹斯笛声，直到亚里士多德时代，一个音乐已经极其发达的时代，这笛声依然令人陶醉激动，而且确实以其原始的作用，激发同时代人的一切诗歌表现手段去模仿它。</li>
+<li>音乐显现为意志，也即显现为审美的、纯粹关照的、无意志的情调的对立面。按其本质来看，音乐不可能是意志，倘若音乐是意志，则它就会完全被逐出艺术领域了，因为意志本身乃是非审美的东西。但音乐却<strong>显现为意志</strong></li>
+<li>唯有艺术才能把那种对恐怖或荒谬的此在生命的厌恶思想转化为人们赖以生活下去的观念：那就是崇高和滑稽，崇高乃是以艺术抑制恐怖，滑稽乃是以艺术发泄对荒谬的厌恶。</li>
+</ul>
+<h3 id="3-苏格拉底"><a href="#3-苏格拉底" class="headerlink" title="3. 苏格拉底"></a>3. 苏格拉底</h3><ul>
+<li>希腊悲剧的毁灭不同于全部更古老的姊妹艺术种类：它是由于一种难以解决的冲突而死于自杀，所以是悲剧性的。</li>
+<li>把那种原始的和万能的狄奥尼索斯元素从悲剧中剔除出去，并且纯粹地、全新地在非狄奥尼索斯的艺术、道德和世界观基础上重建悲剧，——这就是欧里庇德斯的意图。</li>
+<li>而欧里庇德斯从某种意义上来说也只是面具：借他之口说话的神祗不是狄奥尼索斯，也不是阿波罗，而是一个完全新生的恶魔，名叫<strong>苏格拉底</strong>。</li>
+<li>这是一种全新的对立：狄奥尼索斯和苏格拉底，而希腊悲剧艺术作品便因此对立而走向毁灭了。</li>
+<li>审美苏格拉底主义的最高原则：“凡要成为美的，就必须是理智的。”</li>
+<li>当苏格拉底发现他是唯一承认自己一无所知的人时，他关于这种新的 对知识和见识的空前重视 发表了极为尖刻的话。他以挑衅之势走遍雅典，造访那些大政治家、大演说家、大诗人和大艺术家，所到之处都见到知识的自负。他那审视的目光所及，只看到缺乏识见和幻想猖獗，然后从这种缺失当中推断出现存事物的内在颠倒和无耻下流。</li>
+<li>在所有创造性的人那里，直觉恰恰是一种创造和肯定的力量，意识表现为批判性的和劝告性的，而在苏格拉底身上却不然，在他那里，直觉成了批判者，意识成了创造者。</li>
+<li>苏格拉底的原理的结论：“德性即是知识；唯有处于无知才会犯罪；有德性者就是幸福者”：在这三种乐观主义的基本形式中，蕴含着悲剧的死亡。因为现在，有德性的英雄必定是辩证法家，德性与知识、信仰与道德之间必定有一种必然的、可见的联合，现在，埃斯库罗斯的先验的正义解答，沦落为“诗歌正义”这一浅薄而狂妄的原则了。</li>
+<li>然而，苏格拉底主义与艺术之间是否必然地只有一种对立的关系？一个“艺术苏格拉底”的诞生究竟是不是某种自相矛盾的东西？</li>
+</ul>
+<h3 id="4-再谈音乐"><a href="#4-再谈音乐" class="headerlink" title="4. 再谈音乐"></a>4. 再谈音乐</h3><ul>
+<li>与其他所有艺术不同，音乐不是现象的映像，而径直就是意志本身的映像，所以，音乐表现的是世界中一切物理因素的形而上学性质，是一切现象的物自体。在一种较为严格的意义上讲，美学乃始于这种在全部美学中最为重要的美学认识。</li>
+<li>《作为意志和表象的世界》第一篇，“根据所有这一切，我们可以把显现的世界（或自然）与音乐看作同一事物的两种不同表达。如果我们把音乐看作世界之表达，那么它就是最高级的普遍语言，甚至于这种语言之于概念的普遍性的关系，大致如同概念之于个别事物的关系。但它的普遍性绝不是那种抽象的空洞普遍性，是与概无例外的、清晰的确定性相联系的。”</li>
+<li>当一种合适的音乐对某个场景、行动、事件和环境响起来的时候，这种音乐似乎向我们揭示了这些个场景、行动、事件和环境最隐秘的意义，表现为对后者的最正确和最清晰的注解。</li>
+<li><strong>我们或许可以把世界成为被形体化的音乐，同样地也可以把世界成为被形体化的意志。</strong></li>
+<li>首先，音乐激发对狄奥尼索斯式的普遍性的比喻性直观，其次，音乐也使得这种比喻性形象以之高的意蕴显露出来。</li>
+<li>音乐具有诞生神话的能力，作为重要的例证，就是能够诞生出悲剧神话——那是用比喻来言说狄奥尼索斯式认识的神话。</li>
+<li>如若音乐只是强迫我们去寻找某个生命和自然事件与音乐的某些旋律形态和独特声音之间的外在相似性，力图借此来激发我们的快感，那么，我们就被下降到一种不可能孕育神话因素的情绪之中了。因为神话只能被直观地感受为一种向无限凝视的普遍性和真理性的唯一例子。</li>
+</ul>
+<h3 id="5-现象背后"><a href="#5-现象背后" class="headerlink" title="5. 现象背后"></a>5. 现象背后</h3><ul>
+<li>狄奥尼索斯艺术同样也要使我们坚信此在的永恒快乐：只不过，我们不应该在现象中寻求这种快乐，而是要在现象背后来寻求。我们应当认识到，<strong>一切产生出来的东西都必定要痛苦地没落</strong>，我们不得不深入观察个体实存的恐惧，而我们却不应因惊恐而发呆：一种形而上学的慰藉会让我们暂时挣脱变化形态的喧嚣。</li>
+<li>这是一个永恒的现象：贪婪的意志总是在寻找某种手段，通过一种笼罩万物的幻景使它的造物持守在生命中，并且迫使它们继续存活下去。</li>
+<li>有人受缚于苏格拉底的求知欲，以及那种以为通过知识可以救治永恒的此在创伤的妄想；也有人迷恋于在自己眼前飘动的诱人的艺术之美的面纱；又有人迷恋于那种形而上学的慰藉，认为在现象漩涡下面永恒的生命坚不可摧，长流不息。根本上，这三种幻想等级只适合于品质高贵的人物，这等人物毕竟能以<strong>更深的不快和反感来感受此在的重负和艰难，并且不得不通过精选的兴奋剂来对自己隐瞒这种不快和反感。</strong></li>
+<li>席勒说过，自然与理想要么是哀伤的对象，要么是快乐的对象。当自然被表现为失落了的东西而理想被表现为未达到的东西时，两者就是哀伤的对象；而当两者被设想为现实的东西时，它们就是快乐的对象。第一种情况提供出狭义的哀歌，第二种情况则产生出最广义的牧歌。</li>
+<li>歌剧的特征绝不带有对于一种永远丧失的哀痛，而倒是有着一种对于永远重获的欢欣。</li>
+<li>每当狄奥尼索斯热情明显地向四周蔓延时，我们总是能够察觉到，对个体之桎梏的狄奥尼索斯式的摆脱首先表现为一种政治本能的减退，减退到了冷漠、甚至敌视政治本能的地步。</li>
+<li>若没有对个体人格的肯定，也就不可能有国家和故乡意识。</li>
+<li>一个民族若以政治冲动的绝对有效性为出发点，则恰恰必然地陷于极端世俗化的轨道里。（罗马帝国）</li>
+</ul>
+<h3 id="6-唯有作为审美现象"><a href="#6-唯有作为审美现象" class="headerlink" title="6. 唯有作为审美现象"></a>6. 唯有作为审美现象</h3><ul>
+<li><strong>唯有作为审美现象，此在与世界才显得是合理的</strong>：在这种意义上，悲剧神话恰恰是要我们相信，甚至丑陋和不和谐也是一种艺术游戏，是意志在其永远丰富的快感中与自己玩的游戏。</li>
+<li>音乐与悲剧神话同样是一个民族的狄奥尼索斯能力的表现，而且彼此不可分离。两者起源于一个位于阿波罗因素之外的艺术领域；两者都美化了一个区域，在这个区域的快乐和谐中，不谐和音以及恐怖的世界图景都楚楚动人地渐趋消失；两者都相信自己有极强大的魔法，都玩弄着反感不快的芒刺；两者都用这种玩法为“最坏的世界”之实存本身辩护。</li>
+<li>在这里，与阿波罗因素相比较，狄奥尼索斯因素显示为<strong>永恒的和原始的艺术力量</strong>，说到底，正是这种艺术力量召唤整个现象世界进入此在之中：而在现象世界的中心，必需有一种全新的美化假象，方能使这个生机盎然的个体化世界保持活力。</li>
+</ul>
+
+          
         
       
     </div>
@@ -2083,22 +2546,90 @@ USENIX ATC’20Fenggang Wu, Ming-Hong Yang, Baoquan Zhang, and David H.C. Du, Un
       
         
           
-          深入理解RedisRedis阻塞
-Redis 是典型的单线程架构，所有的读写操作都是在一条主线程中完成的。当Redis用于高并发场景时，阻塞问题至关重要。
+            <h1 id="深入理解Redis"><a href="#深入理解Redis" class="headerlink" title="深入理解Redis"></a>深入理解Redis</h1><h2 id="Redis阻塞"><a href="#Redis阻塞" class="headerlink" title="Redis阻塞"></a>Redis阻塞</h2><blockquote>
+<p><strong>Redis 是典型的单线程架构</strong>，所有的读写操作都是在一条主线程中完成的。当Redis用于高并发场景时，阻塞问题至关重要。</p>
+</blockquote>
+<h3 id="导致阻塞的原因"><a href="#导致阻塞的原因" class="headerlink" title="导致阻塞的原因"></a>导致阻塞的原因</h3><ul>
+<li>内在原因：不合理地使用API或数据结构、CPU饱和、持久化阻塞等</li>
+<li>外在原因：CPU竞争、内存交换、网络问题等</li>
+</ul>
+<h4 id="CPU饱和"><a href="#CPU饱和" class="headerlink" title="CPU饱和"></a>CPU饱和</h4><p> <strong>单线程的Redis处理命令时只能使用一个CPU</strong>，CPU饱和是指Redis把单核CPU使用率跑到接近100%。CPU饱和导致Redis无法处理更多命令。</p>
+<p> 解决方法有：</p>
+<ul>
+<li>采用集群分摊OPS压力（Operations per Second）</li>
+<li>检查是否存在过度的内存优化，例如为了节省内存使用ziplist代替hash</li>
+<li>检查是否采用了高算法复杂度的命令</li>
+</ul>
+<h4 id="CPU竞争"><a href="#CPU竞争" class="headerlink" title="CPU竞争"></a>CPU竞争</h4><ul>
+<li>进程竞争：当Redis与其它多核CPU密集型服务部署在一起，会出现竞争CPU资源的情况。</li>
+<li>绑定CPU：<strong>部署Redis时为了充分利用多核CPU，通常一台机器会部署多个实例。常见的一种优化是把Redis进程绑定到CPU上，用于降低CPU频繁上下文切换的开销。</strong><ul>
+<li>但是当Redis父进程创建子进程进行持久化时，如果作了CPU绑定，子进程与父进程就会在同一个CPU上进行，从而使得子进程与父进程抢夺CPU资源。<strong>因此对于开启了持久化或参与复制的主节点不建议绑定CPU。</strong></li>
+</ul>
+</li>
+</ul>
+<h2 id="Redis内存"><a href="#Redis内存" class="headerlink" title="Redis内存"></a>Redis内存</h2><ul>
+<li>Redis实际内存消耗主要包括：键值对象、缓冲区内存、内存碎片。<ul>
+<li>缓冲内存包括：客户端缓冲、复制积压缓冲、AOF缓冲区 </li>
+</ul>
+</li>
+</ul>
+<h2 id="Redis事件处理"><a href="#Redis事件处理" class="headerlink" title="Redis事件处理"></a>Redis事件处理</h2><p>Redis服务器是典型的事件驱动程序。其中，事件分为文件事件和时间事件，事件封装在结构体<em>aeEventLoop</em>中。</p>
+<p>Redis底层使用4中I/O多路复用模型（evport, select, kqueue, epoll），并对这4种模型进一步封装。</p>
+<p>事件循环执行函数的主要逻辑：</p>
+<ul>
+<li>查找最早会发生的时间事件，计算超时时间</li>
+<li>阻塞等待文件事件的产生</li>
+<li>处理文件事件</li>
+<li>处理时间事件</li>
+</ul>
+<h3 id="文件事件"><a href="#文件事件" class="headerlink" title="文件事件"></a>文件事件</h3><p>Redis客户端通过TCP socket与服务端交互，文件事件指的就是socket的可读可写事件。为了同时处理多条网络连接，采用较为成熟的I/O多路复用模型。</p>
+<h4 id="epoll"><a href="#epoll" class="headerlink" title="epoll"></a>epoll</h4><blockquote>
+<p>epoll是linux内核为处理大量并发网络连接而提出的解决方案，能显著提升系统CPU利用率。</p>
+</blockquote>
+<ul>
+<li>epoll_create: 创建一个epoll专用的文件描述符</li>
+<li>epoll_ctl: 注册、修改或删除需要监控的事件</li>
+<li>epoll_wait: 阻塞进程知道监控的若干网络连接有事件发生</li>
+</ul>
+<h3 id="时间事件"><a href="#时间事件" class="headerlink" title="时间事件"></a>时间事件</h3><p>本质上，Redis只有一个时间事件——serverCron。该函数实现了Redis服务器所有定时任务的周期执行。</p>
+<h2 id="Redis-Server启动过程"><a href="#Redis-Server启动过程" class="headerlink" title="Redis Server启动过程"></a>Redis Server启动过程</h2><h3 id="Server初始化"><a href="#Server初始化" class="headerlink" title="Server初始化"></a>Server初始化</h3><ul>
+<li>初始化配置，包括用户可配置的参数以及命令表的初始化</li>
+<li>加载并解析配置文件</li>
+<li>初始化服务端内部变量，其中包括数据库。</li>
+<li>创建事件循环eventLoop</li>
+<li>创建socket并启动监听</li>
+<li>创建文件事件与时间事件</li>
+<li>开启事件循环</li>
+</ul>
+<h2 id="Redis-数据分区"><a href="#Redis-数据分区" class="headerlink" title="Redis 数据分区"></a>Redis 数据分区</h2><p>当单台机器的可用内存里无法装载大型数据库或者数据集时，数据分区就成为了一种重要策略，它将键进行分割并指派给特定的Redis实例。通过分区这一方式，单一的Redis实例的计算能力和资源将不再成为限制。</p>
+<h3 id="数据分区的方法"><a href="#数据分区的方法" class="headerlink" title="数据分区的方法"></a>数据分区的方法</h3><h4 id="客户端分区"><a href="#客户端分区" class="headerlink" title="客户端分区"></a>客户端分区</h4><p>分区逻辑包含在客户端代码中，基于算法或者存储的额外信息来选择正确的分区或Redis节点。<br>常见的策略有：</p>
+<ul>
+<li>范围分区：为每个Redis实例指定键的范围。会带来额外的成本，包括用户追踪分区的Redis bitstring数据结构，以及定制开发的客户端代码</li>
+<li>列表分区：为分区指定一个列表值。与范围分区类似，列表分区同样需要中间数据结构来支持数据存储中 键的分配与追踪。</li>
+<li>哈希分区：根据键和哈希算法计算出值，并基于数据存储中的分区数量或可用实例数对该值进行取模。</li>
+<li>复合分区：结合不同分区方法进行分区。<h4 id="辅助代理分区"><a href="#辅助代理分区" class="headerlink" title="辅助代理分区"></a>辅助代理分区</h4>Redis客户端连接到代理中间件，再由它将客户端请求路由到正确的Redis节点。</li>
+</ul>
+<p><strong>Twemproxy：</strong><br>Twemproxy是一个由Twitter发布的开源项目，旨在创建客户端和由memcache或者Redis实例组成的服务器端间的缓存代理。<br>Twemproxy通过采用中间件的方式，分离客户端调用和数据存储后端</p>
+<h4 id="查询路由"><a href="#查询路由" class="headerlink" title="查询路由"></a>查询路由</h4><ul>
+<li>任一客户端查询集群中的随即节点将会被路由到包含正确键的正确节点上，这是Redis集群当前的实现方式。</li>
+</ul>
+<h2 id="Redis集群"><a href="#Redis集群" class="headerlink" title="Redis集群"></a>Redis集群</h2><p>Redis在大规模分布式计算中主要面临两个问题：</p>
+<ul>
+<li>如何将数据分区到N个Redis实例中去</li>
+<li>如何优雅地处理某些情况下的节点故障</li>
+</ul>
+<p>Redis集群不提供健壮的一致性保证，也就是说在传播数据时数据可能丢失。</p>
+<p>Redis集群默认运行的传播模式是异步的流程（在与客户端交互期间，Redis集群会继续写操作）。在主从节点的配置下，集群的性能胜于数据的一致性。如果数据的一致性对于应用程序来说比性能更重要，那么Redis集群提供的WAIT命令可以用来将数据传播的方式变更成同步流程。</p>
+<p>当Redis集群在运行时，当中的每个节点会打开两个TCP socket。第一个用于连接客户端的标准Redis协议，默认端口是6379。第二个端口是由第一个端口加上10000所得（默认16379），运行着用于节点间通信的二进制协议。</p>
+<p>Redis集群中的节点使用Redis集群总线在网状网络拓扑结构中与其他节点连接。</p>
+<p><strong>参考文献</strong></p>
+<ul>
+<li>《Redis开发与运维》</li>
+<li>《Redis 5设计与源码分析》</li>
+<li>《深入理解Redis》</li>
+</ul>
 
-导致阻塞的原因
-内在原因：不合理地使用API或数据结构、CPU饱和、持久化阻塞等
-外在原因：CPU竞争、内存交换、网络问题等
-
-CPU饱和 单
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2020/09/14/Redis学习-2/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
+          
         
       
     </div>
@@ -2305,6 +2836,26 @@ CPU饱和 单
 
 
         
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
 
 
 
