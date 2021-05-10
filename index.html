@@ -343,7 +343,7 @@
                   <span class="post-meta-item-text">字数统计&#58;</span>
                 
                 <span title="字数统计">
-                  1,424
+                  1,417
                 </span>
               
 
@@ -382,9 +382,10 @@
       
         
           
-          Leveldb源码学习记录1. leveldb 的 keyleveldb中的key分为UserKey和InternalKey。
+          1. leveldb 的 keyleveldb中的key分为UserKey和InternalKey。
 UserKey以Slice的形式存在。Slice是对用户传入的字符串key做封装，本质上也是字符串。其成员变量为：
-InternalKeyUserKey进行进一步的封装。源
+InternalKeyUserKey进行进一步的封装。源码如下：
+可以从构造函数看
           ...
           <!--noindex-->
           <div class="post-button text-center">
