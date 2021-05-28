@@ -73,13 +73,13 @@
 
 
 
-<meta name="description" content="1. leveldb 的 keyleveldb中的key分为UserKey和InternalKey。 UserKey以Slice的形式存在。Slice是对用户传入的字符串key做封装，本质上也是字符串。其成员变量为： InternalKeyUserKey进行进一步的封装。源码如下： 可以从构造函数看到，InternalKey是通过将传入的UserKey，序列号和值类型拼接起来得到的，得到的字符串的">
+<meta name="description" content="leveldb 的 keyleveldb中的key分为UserKey和InternalKey。 UserKey以Slice的形式存在。Slice是对用户传入的字符串key做封装，本质上也是字符串。其成员变量为： InternalKeyUserKey进行进一步的封装。源码如下： 可以从构造函数看到，InternalKey是通过将传入的UserKey，序列号和值类型拼接起来得到的，得到的字符串的后8位">
 <meta name="keywords" content="leveldb 源码">
 <meta property="og:type" content="article">
 <meta property="og:title" content="leveldb源码学习">
 <meta property="og:url" content="linqy71.github.io/2021/05/06/leveldb源码学习/index.html">
 <meta property="og:site_name" content="曲率飞行">
-<meta property="og:description" content="1. leveldb 的 keyleveldb中的key分为UserKey和InternalKey。 UserKey以Slice的形式存在。Slice是对用户传入的字符串key做封装，本质上也是字符串。其成员变量为： InternalKeyUserKey进行进一步的封装。源码如下： 可以从构造函数看到，InternalKey是通过将传入的UserKey，序列号和值类型拼接起来得到的，得到的字符串的">
+<meta property="og:description" content="leveldb 的 keyleveldb中的key分为UserKey和InternalKey。 UserKey以Slice的形式存在。Slice是对用户传入的字符串key做封装，本质上也是字符串。其成员变量为： InternalKeyUserKey进行进一步的封装。源码如下： 可以从构造函数看到，InternalKey是通过将传入的UserKey，序列号和值类型拼接起来得到的，得到的字符串的后8位">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="/2021/05/06/leveldb源码学习/Slice.png">
 <meta property="og:image" content="/2021/05/06/leveldb源码学习/InternalKey.png">
@@ -103,10 +103,11 @@
 <meta property="og:image" content="/2021/05/06/leveldb源码学习/table_cache_get.png">
 <meta property="og:image" content="/2021/05/06/leveldb源码学习/tableandfile.png">
 <meta property="og:image" content="/2021/05/06/leveldb源码学习/InternalGet.png">
-<meta property="og:updated_time" content="2021-05-10T14:06:48.759Z">
+<meta property="og:image" content="/2021/05/06/leveldb源码学习/filemetadata.png">
+<meta property="og:updated_time" content="2021-05-27T11:34:04.769Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="leveldb源码学习">
-<meta name="twitter:description" content="1. leveldb 的 keyleveldb中的key分为UserKey和InternalKey。 UserKey以Slice的形式存在。Slice是对用户传入的字符串key做封装，本质上也是字符串。其成员变量为： InternalKeyUserKey进行进一步的封装。源码如下： 可以从构造函数看到，InternalKey是通过将传入的UserKey，序列号和值类型拼接起来得到的，得到的字符串的">
+<meta name="twitter:description" content="leveldb 的 keyleveldb中的key分为UserKey和InternalKey。 UserKey以Slice的形式存在。Slice是对用户传入的字符串key做封装，本质上也是字符串。其成员变量为： InternalKeyUserKey进行进一步的封装。源码如下： 可以从构造函数看到，InternalKey是通过将传入的UserKey，序列号和值类型拼接起来得到的，得到的字符串的后8位">
 <meta name="twitter:image" content="/2021/05/06/leveldb源码学习/Slice.png">
 
 
@@ -370,7 +371,7 @@
                   <span class="post-meta-item-text">字数统计&#58;</span>
                 
                 <span title="字数统计">
-                  1,417
+                  1,575
                 </span>
               
 
@@ -386,7 +387,7 @@
                   <span class="post-meta-item-text">阅读时长 &asymp;</span>
                 
                 <span title="阅读时长">
-                  5
+                  6
                 </span>
               
             </div>
@@ -407,7 +408,7 @@
       
 
       
-        <h1 id="1-leveldb-的-key"><a href="#1-leveldb-的-key" class="headerlink" title="1. leveldb 的 key"></a>1. leveldb 的 key</h1><p>leveldb中的key分为UserKey和InternalKey。</p>
+        <h1 id="leveldb-的-key"><a href="#leveldb-的-key" class="headerlink" title="leveldb 的 key"></a>leveldb 的 key</h1><p>leveldb中的key分为UserKey和InternalKey。</p>
 <h2 id="UserKey"><a href="#UserKey" class="headerlink" title="UserKey"></a>UserKey</h2><p>以Slice的形式存在。Slice是对用户传入的字符串key做封装，本质上也是字符串。<br>其成员变量为：<br><img src="/2021/05/06/leveldb源码学习/Slice.png" alt=""></p>
 <h2 id="InternalKey"><a href="#InternalKey" class="headerlink" title="InternalKey"></a>InternalKey</h2><p>UserKey进行进一步的封装。<br>源码如下：<br><img src="/2021/05/06/leveldb源码学习/InternalKey.png" alt=""></p>
 <p>可以从构造函数看到，InternalKey是通过将传入的UserKey，序列号和值类型拼接起来得到的，得到的字符串的后8位是序列号和ValueType，ValueType占最后一位。其中：</p>
@@ -415,7 +416,7 @@
 <p>ValueType用来指示键值对是否被删除。</p>
 <p><img src="/2021/05/06/leveldb源码学习/seqnumber.png" alt=""></p>
 <p>序列号用来标识键值对的版本号，新插入的键值对版本号更高，因此在对InternalKey进行排序时会根据序列号降序排列，使得新插入的键值对能排在前面。</p>
-<h1 id="2-leveldb-的-Compaction-过程"><a href="#2-leveldb-的-Compaction-过程" class="headerlink" title="2. leveldb 的 Compaction 过程"></a>2. leveldb 的 Compaction 过程</h1><h2 id="compact-memtable"><a href="#compact-memtable" class="headerlink" title="compact memtable"></a>compact memtable</h2><p><img src="/2021/05/06/leveldb源码学习/compactmemtable.png" alt=""></p>
+<h1 id="leveldb-的-Compaction-过程"><a href="#leveldb-的-Compaction-过程" class="headerlink" title="leveldb 的 Compaction 过程"></a>leveldb 的 Compaction 过程</h1><h2 id="compact-memtable"><a href="#compact-memtable" class="headerlink" title="compact memtable"></a>compact memtable</h2><p><img src="/2021/05/06/leveldb源码学习/compactmemtable.png" alt=""></p>
 <p>这个过程是针对immutable memtable执行的，所以首先确保imm不为空。<br>然后将imm写入Level0。<br>其中，写入Level0的过程为：</p>
 <p><img src="/2021/05/06/leveldb源码学习/writelevel0.png" alt=""></p>
 <p>首先，根据memtable的迭代器，将memtable的数据写入到一个新文件中，这个新文件默认放入level0, 但是注意这里的PickLevelForMemTableOutput可能改变level的值，因此再看：</p>
@@ -424,10 +425,10 @@
 <p><img src="/2021/05/06/leveldb源码学习/maxmemlevel.png" alt=""></p>
 <p>总而言之，就是当memtable的key范围与L0没有交叉时，可能会被刷入L1或L2。这么做的原因是：</p>
 <ul>
-<li>为了节省开销较大的$ L_0 → L_1 $ 的compaction</li>
-<li>不直接放入最深的$L_2$，因为如果有相同的key一直被重复写的话这么做会造成磁盘空间浪费。</li>
+<li>为了节省开销较大的 $ L_0 → L_1 $ 的compaction</li>
+<li>不直接放入最深的 $ L_2 $ ，因为如果有相同的key一直被重复写的话这么做会造成磁盘空间浪费。</li>
 </ul>
-<h2 id="compact-SST-files"><a href="#compact-SST-files" class="headerlink" title="compact SST files"></a>compact SST files</h2><h3 id="触发compaction的条件"><a href="#触发compaction的条件" class="headerlink" title="触发compaction的条件"></a>触发compaction的条件</h3><p>对于$L_0$， leveldb提供了3个设置：</p>
+<h2 id="compact-SST-files"><a href="#compact-SST-files" class="headerlink" title="compact SST files"></a>compact SST files</h2><h3 id="触发compaction的条件"><a href="#触发compaction的条件" class="headerlink" title="触发compaction的条件"></a>触发compaction的条件</h3><p>对于 $ L_0 $ ， leveldb提供了3个设置：</p>
 <p><img src="/2021/05/06/leveldb源码学习/kmaxlevel0.png" alt=""></p>
 <ul>
 <li>当L0的文件数达到4时会触发compaction</li>
@@ -455,6 +456,7 @@
 <p>首先，检查当前的key是否第一次出现，若该key有旧版本，则drop标记为true；<br>或者当key被标记为删除、key的版本号小于当前版本号时，drop标记为true。</p>
 <p><img src="/2021/05/06/leveldb源码学习/docompaction2.png" alt=""></p>
 <p>若drop没有标记为true，则加入新SST文件中。</p>
+<p>更详细的过程参见：<a href="https://leveldb-handbook.readthedocs.io/zh/latest/compaction.html#id7" target="_blank" rel="noopener">compaction过程</a></p>
 <h3 id="SST创建过程"><a href="#SST创建过程" class="headerlink" title="SST创建过程"></a>SST创建过程</h3><p><img src="/2021/05/06/leveldb源码学习/builderadd.png" alt=""></p>
 <p>SST创建过程实际上就是往table中加入key的过程。<br>在加入key的时候，同时也在index block和filter block中加入了key的信息。<br>而 <code>data_block.Add(key, val)</code>是实际将键值对加入的操作，该操作将KV对加入到字符串缓冲区中。</p>
 <h1 id="leveldb中的get"><a href="#leveldb中的get" class="headerlink" title="leveldb中的get"></a>leveldb中的get</h1><h2 id="get"><a href="#get" class="headerlink" title="get"></a>get</h2><p><img src="/2021/05/06/leveldb源码学习/get.png" alt=""></p>
@@ -499,6 +501,14 @@
 <li>首先，index block存放的信息是SST文件里所有data block的最大key值、位置偏移量、以及大小信息。</li>
 <li>而filter block内部也分为很多块，查询具体数据块对应的filter需要根据index block提供的偏移量信息才能执行。<br>详见 <a href="https://leveldb-handbook.readthedocs.io/zh/latest/sstable.html#index-block" target="_blank" rel="noopener">index block结构</a>、 <a href="https://leveldb-handbook.readthedocs.io/zh/latest/sstable.html#filter-block" target="_blank" rel="noopener">filter block结构</a></li>
 </ul>
+<h1 id="如何获取leveldb中的布隆过滤器模块"><a href="#如何获取leveldb中的布隆过滤器模块" class="headerlink" title="如何获取leveldb中的布隆过滤器模块"></a>如何获取leveldb中的布隆过滤器模块</h1><ul>
+<li>从DBImpl类触发，该类中包含了一个version的集合vset</li>
+<li>从vset获取当前版本current version v</li>
+<li>Version v中包含所有层的所有文件的元数据，即<code>files_[level]</code>数组, 从该数组只能获取文件的FileMetaData<br><img src="/2021/05/06/leveldb源码学习/filemetadata.png" alt=""></li>
+<li>从上述分析的Get操作过程可知：可以通过文件的number找到其对应的TableAndFile。从TableAndFile可以得到该文件对应的table</li>
+<li>在Table的InternalGet方法中就展示了如何获取filter模块的方法</li>
+<li>因此，总的获取布隆过滤器的过程如下：</li>
+</ul>
 
       
     </div>
@@ -520,7 +530,7 @@
   <p><span>本文标题:</span><a href="/2021/05/06/leveldb源码学习/">leveldb源码学习</a></p>
   <p><span>文章作者:</span><a href="/" title="访问 清音 的个人博客">清音</a></p>
   <p><span>发布时间:</span>2021年05月06日 - 19:05</p>
-  <p><span>最后更新:</span>2021年05月10日 - 22:05</p>
+  <p><span>最后更新:</span>2021年05月27日 - 19:05</p>
   <p><span>原始链接:</span><a href="/2021/05/06/leveldb源码学习/" title="leveldb源码学习">linqy71.github.io/2021/05/06/leveldb源码学习/</a>
     <span class="copy-path" title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="linqy71.github.io/2021/05/06/leveldb源码学习/" aria-label="复制成功！"></i></span>
   </p>
@@ -574,6 +584,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/05/28/luxun-sanxianji/" rel="prev" title="读鲁迅《三闲集》《二心集》">
+                读鲁迅《三闲集》《二心集》 <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -654,7 +668,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">28</span>
+                  <span class="site-state-item-count">29</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -727,7 +741,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-leveldb-的-key"><span class="nav-number">1.</span> <span class="nav-text">1. leveldb 的 key</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#UserKey"><span class="nav-number">1.1.</span> <span class="nav-text">UserKey</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#InternalKey"><span class="nav-number">1.2.</span> <span class="nav-text">InternalKey</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-leveldb-的-Compaction-过程"><span class="nav-number">2.</span> <span class="nav-text">2. leveldb 的 Compaction 过程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#compact-memtable"><span class="nav-number">2.1.</span> <span class="nav-text">compact memtable</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#compact-SST-files"><span class="nav-number">2.2.</span> <span class="nav-text">compact SST files</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#触发compaction的条件"><span class="nav-number">2.2.1.</span> <span class="nav-text">触发compaction的条件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#如何选择要进行compaction的文件"><span class="nav-number">2.2.2.</span> <span class="nav-text">如何选择要进行compaction的文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#leveldb内部的compaction类型"><span class="nav-number">2.2.3.</span> <span class="nav-text">leveldb内部的compaction类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Compaction的主要工作"><span class="nav-number">2.2.4.</span> <span class="nav-text">Compaction的主要工作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SST创建过程"><span class="nav-number">2.2.5.</span> <span class="nav-text">SST创建过程</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#leveldb中的get"><span class="nav-number">3.</span> <span class="nav-text">leveldb中的get</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#get"><span class="nav-number">3.1.</span> <span class="nav-text">get</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#TableCache的作用和实现"><span class="nav-number">4.</span> <span class="nav-text">TableCache的作用和实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#作用"><span class="nav-number">4.1.</span> <span class="nav-text">作用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实现"><span class="nav-number">4.2.</span> <span class="nav-text">实现</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#leveldb-的-key"><span class="nav-number">1.</span> <span class="nav-text">leveldb 的 key</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#UserKey"><span class="nav-number">1.1.</span> <span class="nav-text">UserKey</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#InternalKey"><span class="nav-number">1.2.</span> <span class="nav-text">InternalKey</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#leveldb-的-Compaction-过程"><span class="nav-number">2.</span> <span class="nav-text">leveldb 的 Compaction 过程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#compact-memtable"><span class="nav-number">2.1.</span> <span class="nav-text">compact memtable</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#compact-SST-files"><span class="nav-number">2.2.</span> <span class="nav-text">compact SST files</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#触发compaction的条件"><span class="nav-number">2.2.1.</span> <span class="nav-text">触发compaction的条件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#如何选择要进行compaction的文件"><span class="nav-number">2.2.2.</span> <span class="nav-text">如何选择要进行compaction的文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#leveldb内部的compaction类型"><span class="nav-number">2.2.3.</span> <span class="nav-text">leveldb内部的compaction类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Compaction的主要工作"><span class="nav-number">2.2.4.</span> <span class="nav-text">Compaction的主要工作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SST创建过程"><span class="nav-number">2.2.5.</span> <span class="nav-text">SST创建过程</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#leveldb中的get"><span class="nav-number">3.</span> <span class="nav-text">leveldb中的get</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#get"><span class="nav-number">3.1.</span> <span class="nav-text">get</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#TableCache的作用和实现"><span class="nav-number">4.</span> <span class="nav-text">TableCache的作用和实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#作用"><span class="nav-number">4.1.</span> <span class="nav-text">作用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实现"><span class="nav-number">4.2.</span> <span class="nav-text">实现</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#如何获取leveldb中的布隆过滤器模块"><span class="nav-number">5.</span> <span class="nav-text">如何获取leveldb中的布隆过滤器模块</span></a></li></ol></div>
             
 
           </div>
