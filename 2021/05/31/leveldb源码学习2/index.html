@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico?v=5.1.4">
+
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="LevelDB中的Compaction如何清除无效版本数据？Version 简单来说，每次执行Compaction就会触发Version的更新 每个Version记录了对SST的新增和删除情况  Sequence Number 前面讲过，leveldb的seq num是与key一块编码作为InternalKey存储的。 在SST内部，InternalKey首先按照UserKey升序排列，Userk">
+<meta property="og:type" content="article">
+<meta property="og:title" content="leveldb源码学习（2）">
+<meta property="og:url" content="linqy71.github.io/2021/05/31/leveldb源码学习2/index.html">
+<meta property="og:site_name" content="曲率飞行">
+<meta property="og:description" content="LevelDB中的Compaction如何清除无效版本数据？Version 简单来说，每次执行Compaction就会触发Version的更新 每个Version记录了对SST的新增和删除情况  Sequence Number 前面讲过，leveldb的seq num是与key一块编码作为InternalKey存储的。 在SST内部，InternalKey首先按照UserKey升序排列，Userk">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="/2021/05/31/leveldb源码学习2/dropolddata.png">
+<meta property="og:image" content="/2021/05/31/leveldb源码学习2/bloomtest.png">
+<meta property="og:image" content="/leveldb源码学习2/filterpolicy.png">
+<meta property="og:updated_time" content="2021-06-12T06:24:55.977Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="leveldb源码学习（2）">
+<meta name="twitter:description" content="LevelDB中的Compaction如何清除无效版本数据？Version 简单来说，每次执行Compaction就会触发Version的更新 每个Version记录了对SST的新增和删除情况  Sequence Number 前面讲过，leveldb的seq num是与key一块编码作为InternalKey存储的。 在SST内部，InternalKey首先按照UserKey升序排列，Userk">
+<meta name="twitter:image" content="/2021/05/31/leveldb源码学习2/dropolddata.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="linqy71.github.io/2021/05/31/leveldb源码学习2/">
+
+
+
+
+
+  <title>leveldb源码学习（2） | 曲率飞行</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+  
+    <a href="https://github.com/linqy71"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png" alt="Fork me on GitHub"></a>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">曲率飞行</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">料青山见我应如是</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="linqy71.github.io/2021/05/31/leveldb源码学习2/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="清音">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/mai.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="曲率飞行">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">leveldb源码学习（2）</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-05-31T11:31:33+08:00">
+                2021-05-31
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  654
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  2
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="LevelDB中的Compaction如何清除无效版本数据？"><a href="#LevelDB中的Compaction如何清除无效版本数据？" class="headerlink" title="LevelDB中的Compaction如何清除无效版本数据？"></a>LevelDB中的Compaction如何清除无效版本数据？</h1><h2 id="Version"><a href="#Version" class="headerlink" title="Version"></a>Version</h2><ul>
+<li>简单来说，每次执行Compaction就会触发Version的更新</li>
+<li>每个Version记录了对SST的新增和删除情况</li>
+</ul>
+<h2 id="Sequence-Number"><a href="#Sequence-Number" class="headerlink" title="Sequence Number"></a>Sequence Number</h2><ul>
+<li>前面讲过，leveldb的seq num是与key一块编码作为InternalKey存储的。</li>
+<li>在SST内部，InternalKey首先按照UserKey升序排列，Userkey相同的则按照seq num降序排列</li>
+<li>每一个写操作都会触发seq的自增，因此，seq越大的key版本越新</li>
+</ul>
+<h2 id="Compaction过程"><a href="#Compaction过程" class="headerlink" title="Compaction过程"></a>Compaction过程</h2><ul>
+<li>当Compaction被触发时，首先会获取当前时刻最新的seq（version维护的 或者 快照获取的）</li>
+<li>对要进行compaction的SST进行遍历</li>
+<li>每遇到一个新key，就记录下该key的Userkey部分，并且该key的last seq记为无穷大</li>
+<li>对于非第一次出现的key，不更改last seq</li>
+<li>因此通过对比key的last seq即可决定是否删除该key</li>
+</ul>
+<p><img src="/2021/05/31/leveldb源码学习2/dropolddata.png" alt=""></p>
+<ul>
+<li>最后，若该key的type是deletion，不能直接删除，需要判断是否IsBaseLevelForKey<ul>
+<li>因为，若在更深的层次还有相同的userkey，则其版本是旧的，需要依靠当前这个key去进行对比然后删除</li>
+</ul>
+</li>
+<li>判断是否BaseLevel的方法：<ul>
+<li>即当前为level，从level+2开始，访问SST的元数据看该key是否包含在键范围内，若在，则不是BaseLevel，即更深层次还有同一个UserKey存在</li>
+<li>为什么从level+2开始？是因为当前的compaction涉及的层次是level和level+1.</li>
+</ul>
+</li>
+</ul>
+<h1 id="LevelDB中的布隆过滤器是如何创建的？"><a href="#LevelDB中的布隆过滤器是如何创建的？" class="headerlink" title="LevelDB中的布隆过滤器是如何创建的？"></a>LevelDB中的布隆过滤器是如何创建的？</h1><p>以bloom_block_test为例：</p>
+<ul>
+<li>首先是BloomTest类，类成员包括：<ul>
+<li>FilterPolicy</li>
+<li>filter_（string类型），用来保存哈希值</li>
+<li>key数组</li>
+</ul>
+</li>
+</ul>
+<p><img src="/2021/05/31/leveldb源码学习2/bloomtest.png" alt=""></p>
+<ul>
+<li>那么FilterPolicy是用来干啥的：<ul>
+<li>这是一个抽象类，提供了创建filter方法和匹配key的方法</li>
+<li>创建filter：为数组里面的每个key计算哈希值，保存到filter_字符串中</li>
+<li>匹配key：计算key的哈希值是否匹配</li>
+</ul>
+</li>
+</ul>
+<p><img src="/leveldb源码学习2/filterpolicy.png" alt=""></p>
+<h1 id="LevelDB中的线程安全"><a href="#LevelDB中的线程安全" class="headerlink" title="LevelDB中的线程安全"></a>LevelDB中的线程安全</h1><p>对着LevelDB的write函数来来回回看了好多遍，不搞懂LevelDB内部锁的机制就无法正确对代码做出改动。</p>
+<p>Write函数的讲解，参考：<a href="https://blog.csdn.net/weixin_42663840/article/details/82629473" target="_blank" rel="noopener">深入浅出leveldb之高性能中锁的使用</a></p>
+<p>在对代码进行修改时要注意：</p>
+<ul>
+<li>mutex_锁全局只有一个，使用不当会造成死锁</li>
+<li>即使不主动使用mutex_，也要注意函数之间的调用关系，因为有些函数之间存在循环调用，函数使用不当也会造成死锁</li>
+</ul>
+<p>出现死锁时：</p>
+<ul>
+<li>gdb打印线程信息</li>
+<li>打印互相等待的两个线程的函数调用栈</li>
+<li>分析两个互相等待的函数之间的关系</li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    <div>
+      
+        
+      
+    </div>
+
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/05/28/luxun-sanxianji/" rel="next" title="读鲁迅《三闲集》《二心集》">
+                <i class="fa fa-chevron-left"></i> 读鲁迅《三闲集》《二心集》
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/06/09/leveldb-ycsb/" rel="prev" title="leveldb测试——使用YCSB">
+                leveldb测试——使用YCSB <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/mai.jpg" alt="清音">
+            
+              <p class="site-author-name" itemprop="name">清音</p>
+              <p class="site-description motion-element" itemprop="description">“吾生也有涯，而知也无涯”</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">31</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">23</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/linqy71" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:275769386@qq.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          <iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width="220" height="86" src="//music.163.com/outchain/player?type=2&id=1060910&auto=1&height=66"></iframe>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#LevelDB中的Compaction如何清除无效版本数据？"><span class="nav-number">1.</span> <span class="nav-text">LevelDB中的Compaction如何清除无效版本数据？</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Version"><span class="nav-number">1.1.</span> <span class="nav-text">Version</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Sequence-Number"><span class="nav-number">1.2.</span> <span class="nav-text">Sequence Number</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Compaction过程"><span class="nav-number">1.3.</span> <span class="nav-text">Compaction过程</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#LevelDB中的布隆过滤器是如何创建的？"><span class="nav-number">2.</span> <span class="nav-text">LevelDB中的布隆过滤器是如何创建的？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#LevelDB中的线程安全"><span class="nav-number">3.</span> <span class="nav-text">LevelDB中的线程安全</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">清音</span>
+
+  
+</div>
+
+
+  <div class="powered-by">
+    <i class="fa fa-user-md"></i><span id="busuanzi_container_site_uv">
+    本站访客数:<span id="busuanzi_value_site_uv"></span>
+    </span>
+  </div>
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+
+<!-- 页面点击小红心 -->
+<script type="text/javascript" src="/js/src/love.js"></script>
+</html>
